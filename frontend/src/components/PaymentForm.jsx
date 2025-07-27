@@ -94,14 +94,14 @@ const PaymentForm = () => {
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
+      shop: null,
+      revenueType: null,
       assessmentYear: dayjs().year(),
       amountPaid: 0,
+      paymentMethod: '',
       paymentDate: dayjs(),
       receiptRequired: true,
       description: '',
-      shop: null,
-      revenueType: null,
-      paymentMethod: '',
     },
   });
 
@@ -210,7 +210,7 @@ const PaymentForm = () => {
                     getOptionLabel={(option) => option.businessName ? `${option.businessName} (${option.ownerName} - ${option.id})` : ''}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     onInputChange={handleShopSearch}
-                    loading={shopSearchLoading}
+                    loading={shopSearchLoading.toString()}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -242,8 +242,9 @@ const PaymentForm = () => {
                     <Select
                       {...field}
                       label="Revenue Type"
-                      loading={revenueTypeLoading}
+                      loading={revenueTypeLoading.toString()}
                     >
+                      <MenuItem value={null} disabled><em>Select revenue type</em></MenuItem>
                       {revenueTypeLoading ? (
                         <MenuItem disabled>
                           <CircularProgress size={20} /> Loading...
