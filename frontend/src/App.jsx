@@ -60,7 +60,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'Roboto, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
   },
   components: {
     MuiAppBar: {
