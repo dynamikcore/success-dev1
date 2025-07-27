@@ -1,11 +1,7 @@
 const express = require('express');
-const express = require('express');
 const cors = require('cors');
 const { Sequelize, DataTypes, Op } = require('sequelize');
-const defineShopModel = require('./models/Shop');
-const defineRevenueTypeModel = require('./models/RevenueType');
-const definePaymentModel = require('./models/Payment');
-const definePermitModel = require('./models/Permit');
+const db = require('./models');
 
 const { calculateBusinessRegistrationFee, calculateAnnualPermitFee, calculateSignagePermitFee, calculateEnvironmentalLevy, calculateShopPremisesTax, calculatePenalty, calculateTotalDue } = require('./utils/uvwieTaxCalculator');
 const { generateShopPaymentReceipt } = require('./utils/receiptGenerator');
@@ -18,22 +14,11 @@ app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json()); // Body parser for JSON
 
 // Database connection using Sequelize (SQLite)
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: 'database.sqlite' // This will create a sqlite file in the project root
-});
-
-// Define models
-const Shop = defineShopModel(sequelize);
-const RevenueType = defineRevenueTypeModel(sequelize);
-const Payment = definePaymentModel(sequelize);
-const Permit = definePermitModel(sequelize);
-
-// Establish associations
-Shop.associate(sequelize.models);
-RevenueType.associate(sequelize.models);
-Payment.associate(sequelize.models);
-Permit.associate(sequelize.models);
+const sequelize = db.sequelize;
+const Shop = db.Shop;
+const RevenueType = db.RevenueType;
+const Payment = db.Payment;
+const Permit = db.Permit;
 
 // Import routes
 const shopRoutes = require('./routes/shops');
@@ -68,81 +53,123 @@ sequelize.sync()
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log('Database synced successfully.');
-        // Example: Create a dummy shop if none exists
-        // This is for demonstration and can be removed in production
-        Shop.count().then(count => {
-          if (count === 0) {
-            Shop.create({
-              businessName: 'Uvwie Local Shop',
-              ownerName: 'John Doe',
-              ownerPhone: '08012345678',
-              ownerEmail: 'john.doe@example.com',
-              shopAddress: '123 Main Street, Effurun',
-              ward: 'Ward 1',
-              businessType: 'Retail',
-              shopSizeCategory: 'Medium',
-              complianceStatus: 'New'
-            }).then(() => console.log('Dummy shop created.')).catch(err => console.error('Failed to create dummy shop:', err));
-          }
-        });
+        // Example: Create dummy data if none exists
+        let createdShop = null;
+        let createdRevenueType = null;
 
-        // Example: Create a dummy revenue type if none exists
-        RevenueType.count().then(count => {
-          if (count === 0) {
-            RevenueType.create({
-              typeName: 'Business Registration Fee',
-              baseAmount: 5000.00,
-              calculationMethod: 'Fixed',
-              frequency: 'OneTime',
-              description: 'Initial fee for business registration',
-              minimumAmount: 5000.00
-            }).then(() => console.log('Dummy revenue type created.')).catch(err => console.error('Failed to create dummy revenue type:', err));
-          }
-        });
-
-        // Example: Create a dummy payment if none exists
-        Payment.count().then(count => {
-          if (count === 0) {
-            // Ensure a shop and revenue type exist before creating a payment
-            Shop.findOne().then(shop => {
-              RevenueType.findOne().then(revenueType => {
-                if (shop && revenueType) {
-                  Payment.create({
-                    shopId: shop.shopId,
-                    revenueTypeId: revenueType.typeId,
-                    assessmentYear: new Date().getFullYear(),
-                    amountDue: 5000.00,
-                    amountPaid: 5000.00,
-                    paymentMethod: 'Cash',
-                    collectedBy: 'Admin Staff',
-                    paymentStatus: 'Paid'
-                  }).then(() => console.log('Dummy payment created.')).catch(err => console.error('Failed to create dummy payment:', err));
-                } else {
-                  console.log('Cannot create dummy payment: Shop or RevenueType not found.');
+        return Shop.count()
+              .then(shopCount => {
+                if (shopCount === 0) {
+                  console.log('Attempting to create shop with data:', {
+                    businessName: 'Uvwie Local Shop',
+                    ownerName: 'John Doe',
+                    ownerPhone: '08012345678',
+                    ownerEmail: 'john.doe@example.com',
+                    shopAddress: '123 Main Street, Effurun',
+                    ward: 'Ward 1',
+                    businessType: 'Retail',
+                    shopSizeCategory: 'Medium',
+                    complianceStatus: 'New'
+                  });
+                  console.log('Attempting to call Shop.create...');
+                  return Shop.create({
+                    businessName: 'Uvwie Local Shop',
+                    ownerName: 'John Doe',
+                    ownerPhone: '08012345678',
+                    ownerEmail: 'john.doe@example.com',
+                    shopAddress: '123 Main Street, Effurun',
+                    ward: 'Ward 1',
+                    businessType: 'Retail',
+                    shopSizeCategory: 'Medium',
+                    complianceStatus: 'New'
+                  })
+                    .then(shop => {
+                      console.log('Dummy shop created.');
+                      createdShop = shop;
+                      return shop; // Ensure the promise resolves with the created shop
+                    })
+                    .catch(err => {
+                      console.error('Failed to create dummy shop:', err);
+                      throw err; // Re-throw to propagate the error
+                    });
                 }
-              }).catch(err => console.error('Error finding RevenueType:', err));
-            }).catch(err => console.error('Error finding Shop:', err));
-          }
-        });
+                return Shop.findOne().then(shop => { createdShop = shop; return shop; }); // Get existing shop
+              })
+              .then(() => RevenueType.count())
+              .then(revenueTypeCount => {
+                if (revenueTypeCount === 0) {
+                  return RevenueType.create({
 
-        // Example: Create a dummy permit if none exists
-        Permit.count().then(count => {
-          if (count === 0) {
-            Shop.findOne().then(shop => {
-              if (shop) {
-                Permit.create({
-                  shopId: shop.shopId,
-                  permitType: 'Business Operating Permit',
-                  permitFee: 10000.00,
-                  issuedBy: 'LGA Staff',
-                  documentPath: '/path/to/document.pdf'
-                }).then(() => console.log('Dummy permit created.')).catch(err => console.error('Failed to create dummy permit:', err));
-              } else {
-                console.log('Cannot create dummy permit: Shop not found.');
-              }
-            }).catch(err => console.error('Error finding Shop:', err));
-          }
-        });
+                    typeName: 'Business Operating Permit',
+                    description: 'Annual permit for businesses to operate.',
+                    baseAmount: 5000.00,
+                    calculationMethod: 'Fixed',
+                    frequency: 'Annual'
+                  })
+                    .then(revenueType => {
+                      console.log('Dummy revenue type created.');
+                      createdRevenueType = revenueType;
+                      return revenueType; // Ensure the promise resolves with the created revenue type
+                    })
+                    .catch(err => {
+                      console.error('Failed to create dummy revenue type:', err);
+                      throw err; // Re-throw to propagate the error
+                    });
+                }
+                return RevenueType.findOne().then(revenueType => { createdRevenueType = revenueType; return revenueType; }); // Get existing revenue type
+              })
+              .then(() => {
+                if (createdShop && createdRevenueType) {
+                  return Payment.count().then(paymentCount => {
+                    if (paymentCount === 0) {
+                      return Payment.create({
+                        shopId: createdShop.shopId,
+                        revenueTypeId: createdRevenueType.typeId,
+                        assessmentYear: new Date().getFullYear(),
+                        amountDue: 5000.00,
+                        amountPaid: 5000.00,
+                        paymentMethod: 'Cash',
+                        collectedBy: 'Admin Staff',
+                        paymentStatus: 'Paid'
+                      })
+                        .then(() => console.log('Dummy payment created.'))
+                        .catch(err => {
+                          console.error('Failed to create dummy payment:', err);
+                          throw err; // Re-throw to propagate the error
+                        });
+                    }
+                    return Promise.resolve();
+                  });
+                } else {
+                  console.warn('Skipping dummy payment creation: Shop or RevenueType not found.');
+                  return Promise.resolve();
+                }
+              })
+              .then(() => {
+                if (createdShop) {
+                  return Permit.count().then(permitCount => {
+                    if (permitCount === 0) {
+                      return Permit.create({
+                        shopId: createdShop.shopId,
+                        permitType: 'Business Operating Permit',
+                        permitFee: 10000.00,
+                        issuedBy: 'LGA Staff',
+                        documentPath: '/path/to/document.pdf'
+                      })
+                        .then(() => console.log('Dummy permit created.'))
+                        .catch(err => {
+                          console.error('Failed to create dummy permit:', err);
+                          throw err; // Re-throw to propagate the error
+                        });
+                    }
+                    return Promise.resolve();
+                  });
+                } else {
+                  console.warn('Skipping dummy permit creation: Shop not found.');
+                  return Promise.resolve();
+                }
+              })
+          .catch(err => console.error('Error during dummy data creation:', err));
     });
   })
   .catch(err => {

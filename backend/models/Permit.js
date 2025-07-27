@@ -1,12 +1,13 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const Permit = sequelize.define('Permit', {
     permitId: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
       primaryKey: true,
+      defaultValue: () => `PERMIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     shopId: {
       type: DataTypes.STRING,
@@ -60,50 +61,6 @@ module.exports = (sequelize) => {
       allowNull: true,
     },
   }, {
-    hooks: {
-      beforeCreate: async (permit, options) => {
-        const currentYear = new Date().getFullYear();
-        const prefix = 'UVW/PERMIT';
-        const lastPermit = await Permit.findOne({
-          order: [['permitId', 'DESC']],
-          where: { permitId: { [DataTypes.Op.like]: `${prefix}/%/${currentYear}/%` } },
-          paranoid: false
-        });
-
-        let nextSequence = 1;
-        if (lastPermit) {
-          const lastIdParts = lastPermit.permitId.split('/');
-          const lastSequence = parseInt(lastIdParts[3], 10);
-          if (!isNaN(lastSequence)) {
-            nextSequence = lastSequence + 1;
-          }
-        }
-        const formattedSequence = String(nextSequence).padStart(3, '0');
-        permit.permitId = `${prefix}/${currentYear}/${formattedSequence}`;
-
-        // Calculate expiryDate based on permitType (example logic)
-        const issueDate = permit.issueDate || new Date();
-        let expiryDate = new Date(issueDate);
-        switch (permit.permitType) {
-          case 'Business Operating Permit':
-          case 'Environmental Clearance':
-          case 'Trading License':
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1); // Annual
-            break;
-          case 'Signage Permit':
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1); // Annual
-            break;
-          case 'Fire Safety Certificate':
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1); // Annual
-            break;
-          default:
-            // Default to 1 year if type not specified or unknown
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-            break;
-        }
-        permit.expiryDate = expiryDate;
-      },
-    },
     indexes: [
       { unique: true, fields: ['permitId'] },
       { fields: ['shopId'] },
@@ -114,9 +71,11 @@ module.exports = (sequelize) => {
     ],
   });
 
-  Permit.associate = (models) => {
-    Permit.belongsTo(models.Shop, { foreignKey: 'shopId' });
+  Permit.associate = (db) => {
+    Permit.belongsTo(db.Shop, { foreignKey: 'shopId' });
   };
+
+
 
   // Method to check if permit is expired
   Permit.prototype.isExpired = function() {

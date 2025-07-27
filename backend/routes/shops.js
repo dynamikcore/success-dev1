@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Shop, Payment, Permit, RevenueType, sequelize } = require('../../../server'); // Assuming server.js exports models and sequelize instance
-const { calculateTotalDue } = require('../../../utils/uvwieTaxCalculator');
+const { Shop, Payment, Permit, RevenueType, sequelize } = require('../server'); // Assuming server.js exports models and sequelize instance
+const { calculateTotalDue } = require('../utils/uvwieTaxCalculator');
 
 // Helper for validation
 const validateShopInput = (req, res, next) => {

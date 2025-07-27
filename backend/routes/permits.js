@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Permit, Shop, sequelize } = require('../../../server'); // Assuming server.js exports models and sequelize instance
+const { Permit, Shop, sequelize } = require('../server'); // Assuming server.js exports models and sequelize instance
 
 // Helper to update shop compliance status (simplified logic - similar to payments.js)
 const updateShopCompliance = async (shopId) => {

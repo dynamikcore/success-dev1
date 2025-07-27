@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Payment, Shop, RevenueType, sequelize } = require('../../../server'); // Assuming server.js exports models and sequelize instance
-const { calculatePenalty, calculateTotalDue } = require('../../../utils/uvwieTaxCalculator');
-const { generateShopPaymentReceipt } = require('../../../utils/receiptGenerator');
+const { Payment, Shop, RevenueType, sequelize } = require('../server'); // Assuming server.js exports models and sequelize instance
+const { calculatePenalty, calculateTotalDue } = require('../utils/uvwieTaxCalculator');
+const { generateShopPaymentReceipt } = require('../utils/receiptGenerator');
 
 // Helper for Nigerian currency formatting
 const formatCurrency = (amount) => {

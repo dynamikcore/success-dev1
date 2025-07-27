@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { Op, Sequelize } = require('sequelize');
-const { Shop, Payment, RevenueType, Permit } = require('../backend/models');
+const { Shop, Payment, RevenueType, Permit } = require('../server');
+
+
 const { calculateTotalDue } = require('../utils/uvwieTaxCalculator');
 
 // Helper function to format currency

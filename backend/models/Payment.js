@@ -1,12 +1,13 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const Payment = sequelize.define('Payment', {
     paymentId: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
       primaryKey: true,
+      defaultValue: () => `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     shopId: {
       type: DataTypes.STRING,
@@ -64,6 +65,7 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
+      defaultValue: () => `REC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     paymentStatus: {
       type: DataTypes.ENUM("Paid", "Pending", "Overdue", "Partial"),
@@ -91,48 +93,6 @@ module.exports = (sequelize) => {
       },
     },
   }, {
-    hooks: {
-      beforeCreate: async (payment, options) => {
-        const currentYear = new Date().getFullYear();
-        // Generate paymentId
-        const paymentPrefix = 'UVW/PAY';
-        const lastPayment = await Payment.findOne({
-          order: [['paymentId', 'DESC']],
-          where: { paymentId: { [DataTypes.Op.like]: `${paymentPrefix}/%/${currentYear}/%` } },
-          paranoid: false
-        });
-
-        let nextPaymentSequence = 1;
-        if (lastPayment) {
-          const lastIdParts = lastPayment.paymentId.split('/');
-          const lastSequence = parseInt(lastIdParts[3], 10);
-          if (!isNaN(lastSequence)) {
-            nextPaymentSequence = lastSequence + 1;
-          }
-        }
-        const formattedPaymentSequence = String(nextPaymentSequence).padStart(3, '0');
-        payment.paymentId = `${paymentPrefix}/${currentYear}/${formattedPaymentSequence}`;
-
-        // Generate receiptNumber
-        const receiptPrefix = 'UVW/REC';
-        const lastReceipt = await Payment.findOne({
-          order: [['receiptNumber', 'DESC']],
-          where: { receiptNumber: { [DataTypes.Op.like]: `${receiptPrefix}/%/${currentYear}/%` } },
-          paranoid: false
-        });
-
-        let nextReceiptSequence = 1;
-        if (lastReceipt) {
-          const lastIdParts = lastReceipt.receiptNumber.split('/');
-          const lastSequence = parseInt(lastIdParts[3], 10);
-          if (!isNaN(lastSequence)) {
-            nextReceiptSequence = lastSequence + 1;
-          }
-        }
-        const formattedReceiptSequence = String(nextReceiptSequence).padStart(3, '0');
-        payment.receiptNumber = `${receiptPrefix}/${currentYear}/${formattedReceiptSequence}`;
-      },
-    },
     indexes: [
       { unique: true, fields: ['paymentId'] },
       { unique: true, fields: ['receiptNumber'] },
@@ -143,10 +103,12 @@ module.exports = (sequelize) => {
     ],
   });
 
-  Payment.associate = (models) => {
-    Payment.belongsTo(models.Shop, { foreignKey: 'shopId' });
-    Payment.belongsTo(models.RevenueType, { foreignKey: 'revenueTypeId' });
+  Payment.associate = (db) => {
+    Payment.belongsTo(db.Shop, { foreignKey: 'shopId' });
+    Payment.belongsTo(db.RevenueType, { foreignKey: 'revenueTypeId' });
   };
+
+
 
   return Payment;
 };

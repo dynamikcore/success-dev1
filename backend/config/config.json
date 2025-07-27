@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "user",
+    "password": "password",
+    "database": "uvwie_revenue_dev",
+    "host": "127.0.0.1",
+    "dialect": "sqlite",
+    "storage": "./database.sqlite"
+  },
+  "test": {
+    "username": "user",
+    "password": "password",
+    "database": "uvwie_revenue_test",
+    "host": "127.0.0.1",
+    "dialect": "sqlite",
+    "storage": ":memory:"
+  },
+  "production": {
+    "username": "user",
+    "password": "password",
+    "database": "uvwie_revenue_prod",
+    "host": "127.0.0.1",
+    "dialect": "sqlite",
+    "storage": "./database.sqlite"
+  }
+}

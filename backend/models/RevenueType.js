@@ -1,12 +1,13 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const RevenueType = sequelize.define('RevenueType', {
     typeId: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
       primaryKey: true,
+      defaultValue: () => `REV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     typeName: {
       type: DataTypes.ENUM(
@@ -74,25 +75,6 @@ module.exports = (sequelize) => {
     },
   }, {
     hooks: {
-      beforeCreate: async (revenueType, options) => {
-        const prefix = 'REV/TYPE';
-        const lastRevenueType = await RevenueType.findOne({
-          order: [['typeId', 'DESC']],
-          where: { typeId: { [DataTypes.Op.like]: `${prefix}/%` } },
-          paranoid: false
-        });
-
-        let nextSequence = 1;
-        if (lastRevenueType) {
-          const lastIdParts = lastRevenueType.typeId.split('/');
-          const lastSequence = parseInt(lastIdParts[2], 10);
-          if (!isNaN(lastSequence)) {
-            nextSequence = lastSequence + 1;
-          }
-        }
-        const formattedSequence = String(nextSequence).padStart(3, '0');
-        revenueType.typeId = `${prefix}/${formattedSequence}`;
-      },
     },
     indexes: [
       { unique: true, fields: ['typeId'] },
@@ -144,6 +126,12 @@ module.exports = (sequelize) => {
 
     return calculatedAmount.toFixed(2); // Return as a string with 2 decimal places
   };
+
+  RevenueType.associate = (db) => {
+    RevenueType.hasMany(db.Payment, { foreignKey: 'revenueTypeId' });
+  };
+
+
 
   return RevenueType;
 };

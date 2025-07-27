@@ -1,12 +1,13 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const Shop = sequelize.define('Shop', {
     shopId: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
       primaryKey: true,
+      defaultValue: () => `SHOP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     businessName: {
       type: DataTypes.STRING,
@@ -100,27 +101,7 @@ module.exports = (sequelize) => {
     },
   }, {
     hooks: {
-      beforeCreate: async (shop, options) => {
-        const currentYear = new Date().getFullYear();
-        const prefix = 'UVW/SHOP';
-        // Find the last shopId for the current year to determine the next sequence number
-        const lastShop = await Shop.findOne({
-          order: [['shopId', 'DESC']],
-          where: { shopId: { [DataTypes.Op.like]: `${prefix}/%/${currentYear}` } },
-          paranoid: false // Include soft-deleted records if applicable
-        });
 
-        let nextSequence = 1;
-        if (lastShop) {
-          const lastIdParts = lastShop.shopId.split('/');
-          const lastSequence = parseInt(lastIdParts[2], 10);
-          if (!isNaN(lastSequence)) {
-            nextSequence = lastSequence + 1;
-          }
-        }
-        const formattedSequence = String(nextSequence).padStart(3, '0');
-        shop.shopId = `${prefix}/${formattedSequence}/${currentYear}`;
-      },
     },
     indexes: [
       { unique: true, fields: ['shopId'] },
@@ -133,10 +114,12 @@ module.exports = (sequelize) => {
     ],
   });
 
-  // Associations (example - no other models yet)
-  // Shop.associate = (models) => {
-  //   Shop.hasMany(models.Payment, { foreignKey: 'shopId' });
-  // };
+  Shop.associate = (db) => {
+    Shop.hasMany(db.Payment, { foreignKey: 'shopId' });
+    Shop.hasMany(db.Permit, { foreignKey: 'shopId' });
+  };
+
+
 
   return Shop;
 };
