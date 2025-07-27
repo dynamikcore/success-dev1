@@ -330,4 +330,4 @@ const PaymentProcessing = () => {
   );
 };
 
-export default 
+export default PaymentProcessing;
