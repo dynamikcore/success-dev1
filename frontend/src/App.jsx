@@ -218,7 +218,7 @@ function App() {
           <Route path="/permits" element={<PermitsComponent />} />
           <Route path="/reports" element={<ReportsComponent />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/login" element={<Login />} />} />
+          <Route path="/login" element={<Login />} />
                 </Routes>
               </Box>
             </Box>
