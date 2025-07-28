@@ -26,48 +26,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
-
-// Dummy API functions (replace with actual API calls)
-const fetchShops = async (query) => {
-  console.log(`Fetching shops with query: ${query}`);
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  const dummyShops = [
-    { id: 'S001', businessName: 'Mama Ngozi Provisions', ownerName: 'Ngozi Okoro' },
-    { id: 'S002', businessName: 'Chukwudi Electronics', ownerName: 'Chukwudi Eze' },
-    { id: 'S003', businessName: 'Grace Boutique', ownerName: 'Grace Adebayo' },
-    { id: 'S004', businessName: 'Uvwie Fast Food', ownerName: 'Ahmed Musa' },
-  ];
-  return dummyShops.filter(
-    (shop) =>
-      shop.businessName.toLowerCase().includes(query.toLowerCase()) ||
-      shop.ownerName.toLowerCase().includes(query.toLowerCase()) ||
-      shop.id.toLowerCase().includes(query.toLowerCase())
-  );
-};
-
-const fetchRevenueTypes = async () => {
-  console.log('Fetching revenue types');
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return [
-    { id: 'RT001', name: 'Business Premises Permit', description: 'Annual permit for business operations', amount: 15000 },
-    { id: 'RT002', name: 'Waste Management Levy', description: 'Monthly levy for waste collection', amount: 2500 },
-    { id: 'RT003', name: 'Signage Fee', description: 'Annual fee for business signage', amount: 5000 },
-  ];
-};
-
-const processPayment = async (paymentData) => {
-  console.log('Processing payment:', paymentData);
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  // Simulate success or failure
-  if (Math.random() > 0.1) {
-    return { success: true, receiptId: 'REC' + Date.now(), message: 'Payment processed successfully.' };
-  } else {
-    throw new Error('Payment processing failed. Please try again.');
-  }
-};
+import { fetchShops, fetchRevenueTypes, createPayment } from '../services/api';
 
 const calculatePenalty = (amountDue, paymentDate) => {
   const dueDate = dayjs().subtract(1, 'month'); // Example: due a month ago
@@ -149,8 +108,8 @@ const PaymentForm = () => {
     }
     setShopSearchLoading(true);
     try {
-      const results = await fetchShops(value);
-      setShops(results);
+      const response = await fetchShops(value);
+      setShops(response.shops || []);
     } catch (error) {
       console.error('Failed to search shops:', error);
     } finally {
@@ -178,13 +137,19 @@ const PaymentForm = () => {
     setPaymentError('');
     setPaymentSuccess(false);
     try {
-      const result = await processPayment(paymentSummary);
-      if (result.success) {
-        setPaymentSuccess(true);
-        // Optionally reset form or navigate
-      } else {
-        setPaymentError(result.message || 'Payment failed.');
-      }
+      const paymentData = {
+        shopId: paymentSummary.shop.shopId,
+        revenueTypeId: paymentSummary.revenueType.id,
+        assessmentYear: paymentSummary.assessmentYear,
+        amountPaid: paymentSummary.amountPaid,
+        paymentMethod: paymentSummary.paymentMethod,
+        paymentDate: paymentSummary.paymentDate.format('YYYY-MM-DD'),
+        description: paymentSummary.description,
+        receiptRequired: paymentSummary.receiptRequired,
+      };
+
+      const result = await createPayment(paymentData);
+      setPaymentSuccess(result);
     } catch (error) {
       setPaymentError(error.message || 'An unexpected error occurred.');
     } finally {
@@ -210,8 +175,8 @@ const PaymentForm = () => {
                   <Autocomplete
                     {...field}
                     options={shops}
-                    getOptionLabel={(option) => option.businessName ? `${option.businessName} (${option.ownerName} - ${option.id})` : ''}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    getOptionLabel={(option) => option.businessName ? `${option.businessName} (${option.ownerName} - ${option.shopId})` : ''}
+                    isOptionEqualToValue={(option, value) => option.shopId === value.shopId}
                     onInputChange={handleShopSearch}
                     loading={!!shopSearchLoading}
                     renderInput={(params) => (
