@@ -19,7 +19,12 @@ import {
   ListItemIcon, 
   ListItemText, 
   Divider,
-  IconButton
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Button,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -109,9 +114,20 @@ function App() {
 
 function AppContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const drawerWidth = 240;
@@ -126,6 +142,7 @@ function AppContent() {
     { text: 'Login', icon: <LoginIcon />, path: '/login' },
   ];
 
+  // Mobile Sidebar
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2, color: 'primary.main' }}>
@@ -145,116 +162,158 @@ function AppContent() {
     </Box>
   );
 
+  // Desktop Header Navigation
+  const desktopNav = (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      {navItems.slice(0, 5).map((item) => (
+        <Button
+          key={item.text}
+          color="inherit"
+          component={Link}
+          to={item.path}
+          startIcon={item.icon}
+          sx={{ textTransform: 'none' }}
+        >
+          {item.text}
+        </Button>
+      ))}
+      <IconButton color="inherit" onClick={handleMenuClick}>
+        <SettingsIcon />
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        {navItems.slice(5).map((item) => (
+          <MenuItem
+            key={item.text}
+            onClick={handleMenuClose}
+            component={Link}
+            to={item.path}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </MenuItem>
+        ))}
+      </Menu>
+    </Box>
+  );
+
   const { isLoading } = useLoading();
 
   return (
     <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {isLoading && (
-          <Box
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: (theme) => theme.zIndex.drawer + 2,
-            }}
-          >
+      <CssBaseline />
+      {isLoading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: (theme) => theme.zIndex.drawer + 2,
+            pointerEvents: 'none',
+          }}
+        >
+          <Box sx={{ pointerEvents: 'auto' }}>
             <CircularProgress />
           </Box>
-        )}
-        <Box sx={{ display: 'flex' }}>
-          <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-            <Toolbar>
+        </Box>
+      )}
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <Toolbar>
+            {isMobile && (
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleDrawerToggle}
-                sx={{ mr: 2, display: { sm: 'none' } }}
+                sx={{ mr: 2 }}
               >
                 <MenuIcon />
               </IconButton>
-              <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-                UVWIE LGA - Shop Revenue Management System
-              </Typography>
-            </Toolbar>
-          </AppBar>
+            )}
+            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: isMobile ? 1 : 0, mr: 4 }}>
+              UVWIE LGA - Shop Revenue Management System
+            </Typography>
+            {!isMobile && desktopNav}
+          </Toolbar>
+        </AppBar>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobile && (
           <Box
             component="nav"
             sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-            aria-label="mailbox folders"
+            aria-label="navigation"
           >
-            {/* The implementation can be swapped with js to avoid SEO duplication of the drawer. */}
             <Drawer
               variant="temporary"
               open={mobileOpen}
               onClose={handleDrawerToggle}
               ModalProps={{
-                    keepMounted: true, // Better open performance on mobile.
-                  }}
-                  sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                  }}
-                >
-                  {drawer}
-                </Drawer>
-                <Drawer
-                  variant="permanent"
-                  sx={{
-                    display: { xs: 'none', sm: 'block' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                  }}
-                  open
-                >
-                  {drawer}
-                </Drawer>
-              </Box>
-              <Box
-                component="main"
-                sx={{
-                  flexGrow: 1,
-                  p: 3,
-                  width: { sm: `calc(100% - ${drawerWidth}px)` },
-                  mt: '64px', // AppBar height
-                }}
-              >
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  
-                  <Route path="/shop-management" element={<ShopManagement />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/permits" element={<PermitsComponent />} />
-          <Route path="/reports" element={<ReportsComponent />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/login" element={<Login />} />
-                </Routes>
-              </Box>
-            </Box>
-            <Box
-              component="footer"
+                keepMounted: true,
+              }}
               sx={{
-                p: 2,
-                mt: 'auto',
-                backgroundColor: 'primary.main',
-                color: 'white',
-                textAlign: 'center',
-                width: '100%',
+                display: { xs: 'block', md: 'none' },
+                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
               }}
             >
-              <Typography variant="body2">
-                © {new Date().getFullYear()} Uvwie Local Government Area. All rights reserved.
-              </Typography>
-              <Typography variant="body2">
-                Developed by Your Company Name
-              </Typography>
-            </Box>
+              {drawer}
+            </Drawer>
+          </Box>
+        )}
+
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            mt: '64px',
+            width: '100%',
+            overflow: 'auto',
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/shop-management" element={<ShopManagement />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/permits" element={<PermitsComponent />} />
+            <Route path="/reports" element={<ReportsComponent />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </Box>
+
+        {/* Footer */}
+        <Box
+          component="footer"
+          sx={{
+            p: 2,
+            mt: 'auto',
+            backgroundColor: 'primary.main',
+            color: 'white',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography variant="body2">
+            © {new Date().getFullYear()} Uvwie Local Government Area. All rights reserved.
+          </Typography>
+          <Typography variant="body2">
+            Developed by Your Company Name
+          </Typography>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }

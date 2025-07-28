@@ -19,10 +19,12 @@ export const LoadingProvider = ({ children }) => {
   const [loadingTimeout, setLoadingTimeout] = useState(null);
 
   const showLoading = () => {
+    // Reduce timeout to 5 seconds to prevent long freezes
     setIsLoading(true);
     const timeout = setTimeout(() => {
+      console.warn('Loading timeout reached, auto-hiding loading state');
       setIsLoading(false);
-    }, 10000);
+    }, 5000);
     setLoadingTimeout(timeout);
   };
 
@@ -34,6 +36,7 @@ export const LoadingProvider = ({ children }) => {
     }
   };
 
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (loadingTimeout) {
