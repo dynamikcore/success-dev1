@@ -19,6 +19,7 @@ import {
   MenuItem,
   Chip,
   TableContainer,
+  CircularProgress,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -34,39 +35,6 @@ import TableViewIcon from '@mui/icons-material/TableView';
 import PaymentForm from '../components/PaymentForm';
 import { fetchPayments, fetchShops } from '../services/api';
 
-// Dummy Data and API functions (replace with actual data and API calls)
-const dummyStats = {
-  todayCollection: 150000,
-  thisMonthTotal: 5750000,
-  outstandingAmount: 12300000,
-  numTransactions: 75,
-};
-
-const dummyRecentPayments = [
-  { id: 'REC001', shopName: 'Mama Ngozi Provisions', amount: 15000, status: 'Completed', date: '2023-10-26' },
-  { id: 'REC002', shopName: 'Chukwudi Electronics', amount: 25000, status: 'Pending', date: '2023-10-25' },
-  { id: 'REC003', shopName: 'Grace Boutique', amount: 5000, status: 'Completed', date: '2023-10-25' },
-  { id: 'REC004', shopName: 'Uvwie Fast Food', amount: 10000, status: 'Failed', date: '2023-10-24' },
-];
-
-const dummyPaymentHistory = [
-  { receiptNo: 'REC001', date: '2023-10-26', shopName: 'Mama Ngozi Provisions', revenueType: 'Business Premises Permit', amount: 15000, method: 'Bank Transfer', status: 'Completed' },
-  { receiptNo: 'REC002', date: '2023-10-25', shopName: 'Chukwudi Electronics', revenueType: 'Waste Management Levy', amount: 2500, method: 'POS', status: 'Pending' },
-  { receiptNo: 'REC003', date: '2023-10-25', shopName: 'Grace Boutique', revenueType: 'Signage Fee', amount: 5000, method: 'Cash', status: 'Completed' },
-  { receiptNo: 'REC004', date: '2023-10-24', shopName: 'Uvwie Fast Food', revenueType: 'Business Premises Permit', amount: 10000, method: 'Online', status: 'Failed' },
-  { receiptNo: 'REC005', date: '2023-10-23', shopName: 'Local Pharmacy', revenueType: 'Waste Management Levy', amount: 2500, method: 'Bank Transfer', status: 'Completed' },
-  { receiptNo: 'REC006', date: '2023-10-22', shopName: 'Tech Gadgets', revenueType: 'Business Premises Permit', amount: 20000, method: 'POS', status: 'Completed' },
-  { receiptNo: 'REC007', date: '2023-10-21', shopName: 'Fashion Hub', revenueType: 'Signage Fee', amount: 5000, method: 'Cash', status: 'Completed' },
-  { receiptNo: 'REC008', date: '2023-10-20', shopName: 'Bookworm Store', revenueType: 'Waste Management Levy', amount: 2500, method: 'Online', status: 'Completed' },
-  { receiptNo: 'REC009', date: '2023-10-19', shopName: 'Fresh Produce', revenueType: 'Business Premises Permit', amount: 15000, method: 'Bank Transfer', status: 'Completed' },
-  { receiptNo: 'REC010', date: '2023-10-18', shopName: 'Auto Repair', revenueType: 'Signage Fee', amount: 5000, method: 'POS', status: 'Completed' },
-];
-
-const dummyOutstandingPayments = [
-  { id: 'OUT001', shopName: 'Unpaid Groceries', revenueType: 'Business Premises Permit', amount: 15000, dueDate: '2023-09-30', penalty: 1500 },
-  { id: 'OUT002', shopName: 'Deluxe Salon', revenueType: 'Waste Management Levy', amount: 2500, dueDate: '2023-10-15', penalty: 125 },
-];
-
 const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
 
 const PaymentProcessing = () => {
@@ -76,6 +44,14 @@ const PaymentProcessing = () => {
   const [startDate, setStartDate] = useState(dayjs().subtract(30, 'day'));
   const [endDate, setEndDate] = useState(dayjs());
   const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [stats, setStats] = useState({
+    todayCollection: 0,
+    thisMonthTotal: 0,
+    outstandingAmount: 0,
+    numTransactions: 0,
+  });
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [outstandingPayments, setOutstandingPayments] = useState([]);
 
   const loadPayments = async () => {
     setLoading(true);
@@ -85,7 +61,31 @@ const PaymentProcessing = () => {
         endDate: endDate.format('YYYY-MM-DD'),
       };
       const response = await fetchPayments(filters);
-      setPayments(response.payments || []);
+      const paymentsData = response.payments || [];
+      setPayments(paymentsData);
+
+      // Calculate stats from actual data
+      const today = dayjs().format('YYYY-MM-DD');
+      const thisMonth = dayjs().format('YYYY-MM');
+
+      const todayPayments = paymentsData.filter(p => p.paymentDate === today);
+      const thisMonthPayments = paymentsData.filter(p => p.paymentDate.startsWith(thisMonth));
+      const completedPayments = paymentsData.filter(p => p.status === 'Completed');
+      const pendingPayments = paymentsData.filter(p => p.status === 'Pending');
+
+      setStats({
+        todayCollection: todayPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
+        thisMonthTotal: thisMonthPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
+        outstandingAmount: pendingPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
+        numTransactions: completedPayments.length,
+      });
+
+      // Set recent payments (last 5)
+      setRecentPayments(paymentsData.slice(0, 5));
+
+      // Set outstanding payments (pending/failed)
+      setOutstandingPayments(paymentsData.filter(p => p.status === 'Pending' || p.status === 'Failed'));
+
     } catch (error) {
       console.error('Failed to fetch payments:', error);
       setPayments([]);
@@ -120,15 +120,14 @@ const PaymentProcessing = () => {
     setAnchorEl(null);
   };
 
-  const filteredPaymentHistory = dummyPaymentHistory.filter(payment =>
-    payment.shopName.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
-    payment.receiptNo.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
-    payment.revenueType.toLowerCase().includes(historySearchQuery.toLowerCase())
+  const filteredPaymentHistory = payments.filter(payment =>
+    (payment.shopName && payment.shopName.toLowerCase().includes(historySearchQuery.toLowerCase())) ||
+    (payment.receiptNo && payment.receiptNo.toLowerCase().includes(historySearchQuery.toLowerCase())) ||
+    (payment.revenueType && payment.revenueType.toLowerCase().includes(historySearchQuery.toLowerCase()))
   );
 
   const handleAdvancedFilters = () => {
     alert('Advanced filters dialog would open here');
-    // In production: open a dialog with date range, amount range, status filters
   };
 
   const handleExportExcel = () => {
@@ -136,7 +135,7 @@ const PaymentProcessing = () => {
     const csvContent = [
       headers.join(','),
       ...filteredPaymentHistory.map(row =>
-        `"${row.receiptNo}","${row.date}","${row.shopName}","${row.revenueType}","${row.amount}","${row.method}","${row.status}"`
+        `"${row.receiptNo || ''}","${row.paymentDate || ''}","${row.shopName || ''}","${row.revenueType || ''}","${row.amountPaid || ''}","${row.paymentMethod || ''}","${row.status || ''}"`
       )
     ].join('\n');
 
@@ -150,8 +149,16 @@ const PaymentProcessing = () => {
   };
 
   const handleExportPDF = () => {
-    window.print(); // Simple print functionality
+    window.print();
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -169,7 +176,7 @@ const PaymentProcessing = () => {
                   Today's Collection
                 </Typography>
                 <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                  {formatCurrency(dummyStats.todayCollection)}
+                  {formatCurrency(stats.todayCollection)}
                 </Typography>
               </CardContent>
             </Card>
@@ -181,7 +188,7 @@ const PaymentProcessing = () => {
                   This Month's Total
                 </Typography>
                 <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                  {formatCurrency(dummyStats.thisMonthTotal)}
+                  {formatCurrency(stats.thisMonthTotal)}
                 </Typography>
               </CardContent>
             </Card>
@@ -193,7 +200,7 @@ const PaymentProcessing = () => {
                   Outstanding Amount
                 </Typography>
                 <Typography variant="h5" color="error" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                  {formatCurrency(dummyStats.outstandingAmount)}
+                  {formatCurrency(stats.outstandingAmount)}
                 </Typography>
               </CardContent>
             </Card>
@@ -205,7 +212,7 @@ const PaymentProcessing = () => {
                   Number of Transactions
                 </Typography>
                 <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                  {dummyStats.numTransactions}
+                  {stats.numTransactions}
                 </Typography>
               </CardContent>
             </Card>
@@ -254,7 +261,7 @@ const PaymentProcessing = () => {
         {/* Payment Recording Section */}
         <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
           <Typography variant="h5" gutterBottom>Record New Payment</Typography>
-          <PaymentForm />
+          <PaymentForm onPaymentSuccess={loadPayments} />
 
           <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>Recent Payments</Typography>
           <Table size="small">
@@ -268,27 +275,28 @@ const PaymentProcessing = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {dummyRecentPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.id}</TableCell>
-                  <TableCell>{payment.shopName}</TableCell>
-                  <TableCell align="right">{formatCurrency(payment.amount)}</TableCell>
+              {recentPayments.map((payment) => (
+                <TableRow key={payment.paymentId || payment.receiptNo}>
+                  <TableCell>{payment.receiptNo || payment.paymentId}</TableCell>
+                  <TableCell>{payment.shopName || 'N/A'}</TableCell>
+                  <TableCell align="right">{formatCurrency(parseFloat(payment.amountPaid || 0))}</TableCell>
                   <TableCell>
                     <Chip
-                      label={payment.status}
+                      label={payment.status || 'Unknown'}
                       color={payment.status === 'Completed' ? 'success' : payment.status === 'Pending' ? 'warning' : 'error'}
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{payment.date}</TableCell>
+                  <TableCell>{payment.paymentDate || 'N/A'}</TableCell>
                 </TableRow>
               ))}
+              {recentPayments.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">No recent payments found</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
-          <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-            <Button variant="text" size="small">Quick Pay: Business Permit</Button>
-            <Button variant="text" size="small">Quick Pay: Waste Levy</Button>
-          </Box>
         </Paper>
 
         {/* Payment History Section */}
@@ -368,18 +376,18 @@ const PaymentProcessing = () => {
               <TableBody>
                 {filteredPaymentHistory.map((row) => (
                   <TableRow
-                    key={row.receiptNo}
+                    key={row.paymentId || row.receiptNo}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
-                    <TableCell component="th" scope="row">{row.receiptNo}</TableCell>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.shopName}</TableCell>
-                    <TableCell>{row.revenueType}</TableCell>
-                    <TableCell align="right">{formatCurrency(row.amount)}</TableCell>
-                    <TableCell>{row.method}</TableCell>
+                    <TableCell component="th" scope="row">{row.receiptNo || row.paymentId}</TableCell>
+                    <TableCell>{row.paymentDate || 'N/A'}</TableCell>
+                    <TableCell>{row.shopName || 'N/A'}</TableCell>
+                    <TableCell>{row.revenueType || 'N/A'}</TableCell>
+                    <TableCell align="right">{formatCurrency(parseFloat(row.amountPaid || 0))}</TableCell>
+                    <TableCell>{row.paymentMethod || 'N/A'}</TableCell>
                     <TableCell>
                       <Chip
-                        label={row.status}
+                        label={row.status || 'Unknown'}
                         color={row.status === 'Completed' ? 'success' : row.status === 'Pending' ? 'warning' : 'error'}
                         size="small"
                       />
@@ -412,7 +420,7 @@ const PaymentProcessing = () => {
                       >
                         <MenuItem onClick={() => {
                           handleMenuClose();
-                          alert(`Viewing details for ${row.receiptNo}`);
+                          alert(`Viewing details for ${row.receiptNo || row.paymentId}`);
                         }}>
                           View Details
                         </MenuItem>
@@ -424,7 +432,7 @@ const PaymentProcessing = () => {
                         </MenuItem>
                         <MenuItem onClick={() => {
                           handleMenuClose();
-                          alert(`${row.receiptNo} marked as verified`);
+                          alert(`${row.receiptNo || row.paymentId} marked as verified`);
                         }}>
                           Mark as Verified
                         </MenuItem>
@@ -432,7 +440,7 @@ const PaymentProcessing = () => {
                           handleMenuClose();
                           const penalty = prompt('Enter penalty amount:');
                           if (penalty) {
-                            alert(`Penalty of ₦${penalty} applied to ${row.receiptNo}`);
+                            alert(`Penalty of ₦${penalty} applied to ${row.receiptNo || row.paymentId}`);
                           }
                         }}>
                           Apply Penalty
@@ -441,6 +449,11 @@ const PaymentProcessing = () => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredPaymentHistory.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">No payment history found</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -456,25 +469,31 @@ const PaymentProcessing = () => {
                 <TableCell>Revenue Type</TableCell>
                 <TableCell align="right">Amount Due</TableCell>
                 <TableCell>Due Date</TableCell>
-                <TableCell align="right">Penalty</TableCell>
+                <TableCell>Status</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {dummyOutstandingPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.shopName}</TableCell>
-                  <TableCell>{payment.revenueType}</TableCell>
-                  <TableCell align="right">{formatCurrency(payment.amount)}</TableCell>
-                  <TableCell>{payment.dueDate}</TableCell>
-                  <TableCell align="right" color="error">{formatCurrency(payment.penalty)}</TableCell>
+              {outstandingPayments.map((payment) => (
+                <TableRow key={payment.paymentId}>
+                  <TableCell>{payment.shopName || 'N/A'}</TableCell>
+                  <TableCell>{payment.revenueType || 'N/A'}</TableCell>
+                  <TableCell align="right">{formatCurrency(parseFloat(payment.amountPaid || 0))}</TableCell>
+                  <TableCell>{payment.paymentDate || 'N/A'}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={payment.status || 'Unknown'}
+                      color={payment.status === 'Pending' ? 'warning' : 'error'}
+                      size="small"
+                    />
+                  </TableCell>
                   <TableCell align="center">
                     <Button
                       variant="outlined"
                       size="small"
                       sx={{ mr: 1 }}
                       onClick={() => {
-                        alert(`Reminder sent to ${payment.shopName}`);
+                        alert(`Reminder sent to ${payment.shopName || 'shop'}`);
                       }}
                     >
                       Send Reminder
@@ -483,8 +502,7 @@ const PaymentProcessing = () => {
                       variant="contained"
                       size="small"
                       onClick={() => {
-                        alert(`Processing payment for ${payment.shopName}`);
-                        // In production: navigate to payment form with pre-filled data
+                        alert(`Processing payment for ${payment.shopName || 'shop'}`);
                       }}
                     >
                       Process Payment
@@ -492,6 +510,11 @@ const PaymentProcessing = () => {
                   </TableCell>
                 </TableRow>
               ))}
+              {outstandingPayments.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">No outstanding payments found</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
           <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
@@ -499,8 +522,9 @@ const PaymentProcessing = () => {
               variant="contained"
               color="secondary"
               onClick={() => {
-                alert(`Processing ${dummyOutstandingPayments.length} outstanding payments`);
+                alert(`Processing ${outstandingPayments.length} outstanding payments`);
               }}
+              disabled={outstandingPayments.length === 0}
             >
               Bulk Process Payments
             </Button>
