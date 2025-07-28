@@ -40,10 +40,7 @@ const calculatePenalty = (amountDue, paymentDate) => {
 
 const schema = yup.object().shape({
   shop: yup.object().nullable().required('Shop is required'),
-  revenueType: yup.object().nullable().transform((value, originalValue) => {
-    // Allow empty string to be considered as null for validation
-    return originalValue === '' ? null : value;
-  }).required('Revenue type is required'),
+  revenueType: yup.string().required('Revenue type is required'),
   assessmentYear: yup.number().required('Assessment year is required'),
   amountPaid: yup.number().required('Amount paid is required').min(0, 'Amount paid cannot be negative'),
   paymentMethod: yup.string().required('Payment method is required'),
@@ -82,7 +79,9 @@ const PaymentForm = () => {
   const amountPaid = watch('amountPaid');
   const paymentDate = watch('paymentDate');
 
-  const amountDue = selectedRevenueType ? selectedRevenueType.amount : 0;
+  // Find the actual revenue type object from the string ID
+  const revenueTypeObject = revenueTypes.find(type => type.id === selectedRevenueType);
+  const amountDue = revenueTypeObject ? revenueTypeObject.amount : 0;
   const penalty = calculatePenalty(amountDue, paymentDate);
   const totalAmountDue = amountDue + penalty;
 
@@ -118,8 +117,10 @@ const PaymentForm = () => {
   };
 
   const handleConfirmPayment = (data) => {
+    const revenueTypeObj = revenueTypes.find(type => type.id === data.revenueType);
     setPaymentSummary({
       ...data,
+      revenueType: revenueTypeObj,
       amountDue,
       penalty,
       totalAmountDue,
@@ -210,8 +211,7 @@ const PaymentForm = () => {
                     <Select
                       {...field}
                       label="Revenue Type"
-                      value={field.value || ''} // Added fallback for Select
-                      loading={revenueTypeLoading.toString()}
+                      value={field.value || ''}
                     >
                       <MenuItem value="" disabled><em>Select revenue type</em></MenuItem>
                       {revenueTypeLoading ? (
@@ -220,7 +220,7 @@ const PaymentForm = () => {
                         </MenuItem>
                       ) : (
                         revenueTypes.map((type) => (
-                          <MenuItem key={type.id} value={type}>
+                          <MenuItem key={type.id} value={type.id}>
                             {type.name} (₦{type.amount.toLocaleString()})
                           </MenuItem>
                         ))
