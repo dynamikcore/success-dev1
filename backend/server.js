@@ -37,8 +37,27 @@ app.use('/api/permits', permitRoutes);
 const reportRoutes = require('./routes/reports');
 app.use('/api/reports', reportRoutes);
 
-app.get('/api/revenue-types', (req, res) => {
-  res.send('Revenue Types API endpoint');
+app.get('/api/revenue-types', async (req, res) => {
+  try {
+    const revenueTypes = await RevenueType.findAll({
+      where: { isActive: true },
+      order: [['typeName', 'ASC']]
+    });
+
+    const formattedTypes = revenueTypes.map(type => ({
+      id: type.typeId,
+      name: type.typeName,
+      description: type.description,
+      amount: parseFloat(type.baseAmount),
+      calculationMethod: type.calculationMethod,
+      frequency: type.frequency
+    }));
+
+    res.json(formattedTypes);
+  } catch (error) {
+    console.error('Error fetching revenue types:', error);
+    res.status(500).json({ message: 'Error fetching revenue types', error: error.message });
+  }
 });
 
 // Basic error handling middleware

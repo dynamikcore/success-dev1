@@ -279,6 +279,66 @@ const Reports = () => {
     setPage(0);
   };
 
+  const handleExportPDF = () => {
+    if (!reportResult) {
+      alert('Please generate a report first');
+      return;
+    }
+    // Simple implementation - in production, use a proper PDF library
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head><title>Report - ${reportType}</title></head>
+        <body>
+          <h1>Report: ${reportType}</h1>
+          <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          ${reportResult.tableData ? `
+            <table border="1" style="border-collapse: collapse; width: 100%;">
+              <thead>
+                <tr>${Object.keys(reportResult.tableData[0] || {}).map(key => `<th>${key}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${reportResult.tableData.map(row =>
+                  `<tr>${Object.values(row).map(val => `<td>${val}</td>`).join('')}</tr>`
+                ).join('')}
+              </tbody>
+            </table>
+          ` : ''}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const handleExportExcel = () => {
+    if (!reportResult?.tableData) {
+      alert('No data to export');
+      return;
+    }
+
+    // Simple CSV export (can be opened in Excel)
+    const headers = Object.keys(reportResult.tableData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...reportResult.tableData.map(row =>
+        headers.map(header => `"${row[header]}"`).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report-${reportType}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   const renderReportContent = () => {
     if (loading) {
       return (
@@ -377,9 +437,9 @@ const Reports = () => {
         )}
 
         <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button variant="outlined">Export to PDF</Button>
-          <Button variant="outlined">Export to Excel</Button>
-          <Button variant="outlined">Print</Button>
+          <Button variant="outlined" onClick={handleExportPDF}>Export to PDF</Button>
+          <Button variant="outlined" onClick={handleExportExcel}>Export to Excel</Button>
+          <Button variant="outlined" onClick={handlePrint}>Print</Button>
         </Box>
       </Box>
     );

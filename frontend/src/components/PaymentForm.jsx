@@ -362,14 +362,13 @@ const PaymentForm = () => {
                     label="Payment Date"
                     value={field.value || null} // Changed to null for DatePicker
                     onChange={(newValue) => field.onChange(newValue)}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        error={!!errors.paymentDate}
-                        helperText={errors.paymentDate?.message}
-                      />
-                    )}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: !!errors.paymentDate,
+                        helperText: errors.paymentDate?.message
+                      }
+                    }}
                   />
                 )}
               />

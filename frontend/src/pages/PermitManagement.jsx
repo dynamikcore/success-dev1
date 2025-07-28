@@ -549,8 +549,34 @@ const PermitManagement = () => {
                         <TableCell align="left">{row.expiryDate}</TableCell>
                         <TableCell align="left" sx={{ color: getStatusColor(row.status), fontWeight: 'bold' }}>{row.status}</TableCell>
                         <TableCell align="center">
-                          <Button variant="outlined" size="small" sx={{ mr: 1 }}>View</Button>
-                          <Button variant="outlined" size="small">Renew</Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{ mr: 1 }}
+                            onClick={() => {
+                              alert(`Viewing details for permit ${row.id}`);
+                              // In production: navigate to permit details page
+                            }}
+                          >
+                            View
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={async () => {
+                              try {
+                                await renewPermit([row.id]);
+                                alert(`Permit ${row.id} renewed successfully`);
+                                // Refresh permits list
+                                const updatedPermits = await fetchPermits();
+                                setPermits(updatedPermits);
+                              } catch (error) {
+                                alert('Failed to renew permit');
+                              }
+                            }}
+                          >
+                            Renew
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -644,15 +670,14 @@ const PermitManagement = () => {
                     label="Issue Date"
                     value={field.value}
                     onChange={(newValue) => field.onChange(newValue)}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        margin="normal"
-                        error={!!error}
-                        helperText={error ? error.message : null}
-                      />
-                    )}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        margin: "normal",
+                        error: !!error,
+                        helperText: error ? error.message : null
+                      }
+                    }}
                   />
                 )}
               />
@@ -689,8 +714,31 @@ const PermitManagement = () => {
         <Paper elevation={2} sx={{ p: 3, mt: 4 }}>
           <Typography variant="h5" gutterBottom>Expiry Management & Reports Overview</Typography>
           <Typography variant="body1">This section would contain automated reminder systems, renewal processing workflows, penalty calculations, and various permit-related reports like issuance statistics, revenue from permits, expiry calendar view, and compliance tracking.</Typography>
-          <Button variant="outlined" sx={{ mt: 2 }}>Go to Expiry Dashboard</Button>
-          <Button variant="outlined" sx={{ mt: 2, ml: 2 }}>View Permit Reports</Button>
+          <Button
+            variant="outlined"
+            sx={{ mt: 2 }}
+            onClick={() => {
+              // Filter permits expiring in next 30 days
+              const expiring = permits.filter(p => p.status === 'Expiring Soon');
+              alert(`${expiring.length} permits expiring in the next 30 days`);
+            }}
+          >
+            Go to Expiry Dashboard
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{ mt: 2, ml: 2 }}
+            onClick={() => {
+              const stats = {
+                total: permits.length,
+                active: permits.filter(p => p.status === 'Active').length,
+                expired: permits.filter(p => p.status === 'Expired').length
+              };
+              alert(`Permit Stats: Total: ${stats.total}, Active: ${stats.active}, Expired: ${stats.expired}`);
+            }}
+          >
+            View Permit Reports
+          </Button>
         </Paper>
 
       </Box>

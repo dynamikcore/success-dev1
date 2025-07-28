@@ -75,13 +75,15 @@ const ShopManagement = () => {
   };
 
   const handleDeleteShop = async (shopId) => {
-    if (window.confirm(`Are you sure you want to delete shop ${shopId}?`)) {
+    const shop = shops.find(s => s.id === shopId);
+    if (window.confirm(`Are you sure you want to delete "${shop?.businessName}"? This action cannot be undone.`)) {
       try {
         await deleteShop(shopId);
+        alert('Shop deleted successfully');
         loadShops(); // Reload shops after deletion
       } catch (error) {
         console.error('Failed to delete shop:', error);
-        alert('Failed to delete shop.');
+        alert('Failed to delete shop. Please try again.');
       }
     }
   };

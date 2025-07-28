@@ -89,6 +89,33 @@ const PaymentProcessing = () => {
     payment.revenueType.toLowerCase().includes(historySearchQuery.toLowerCase())
   );
 
+  const handleAdvancedFilters = () => {
+    alert('Advanced filters dialog would open here');
+    // In production: open a dialog with date range, amount range, status filters
+  };
+
+  const handleExportExcel = () => {
+    const headers = ['Receipt No', 'Date', 'Shop Name', 'Revenue Type', 'Amount', 'Method', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredPaymentHistory.map(row =>
+        `"${row.receiptNo}","${row.date}","${row.shopName}","${row.revenueType}","${row.amount}","${row.method}","${row.status}"`
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payment-history-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = () => {
+    window.print(); // Simple print functionality
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ p: 3 }}>
@@ -213,9 +240,29 @@ const PaymentProcessing = () => {
               }}
             />
             <Box>
-              <Button variant="outlined" startIcon={<FilterListIcon />} sx={{ mr: 1 }}>Advanced Filters</Button>
-              <Button variant="outlined" startIcon={<TableViewIcon />} sx={{ mr: 1 }}>Export Excel</Button>
-              <Button variant="outlined" startIcon={<PictureAsPdfIcon />}>Export PDF</Button>
+              <Button
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                sx={{ mr: 1 }}
+                onClick={handleAdvancedFilters}
+              >
+                Advanced Filters
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<TableViewIcon />}
+                sx={{ mr: 1 }}
+                onClick={handleExportExcel}
+              >
+                Export Excel
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<PictureAsPdfIcon />}
+                onClick={handleExportPDF}
+              >
+                Export PDF
+              </Button>
             </Box>
           </Box>
           <TableContainer component={Paper}>
@@ -277,10 +324,33 @@ const PaymentProcessing = () => {
                           },
                         }}
                       >
-                        <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
-                        <MenuItem onClick={handleMenuClose}><PrintIcon sx={{ mr: 1 }} fontSize="small" /> Print Receipt</MenuItem>
-                        <MenuItem onClick={handleMenuClose}>Mark as Verified</MenuItem>
-                        <MenuItem onClick={handleMenuClose}>Apply Penalty</MenuItem>
+                        <MenuItem onClick={() => {
+                          handleMenuClose();
+                          alert(`Viewing details for ${row.receiptNo}`);
+                        }}>
+                          View Details
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                          handleMenuClose();
+                          window.print();
+                        }}>
+                          <PrintIcon sx={{ mr: 1 }} fontSize="small" /> Print Receipt
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                          handleMenuClose();
+                          alert(`${row.receiptNo} marked as verified`);
+                        }}>
+                          Mark as Verified
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                          handleMenuClose();
+                          const penalty = prompt('Enter penalty amount:');
+                          if (penalty) {
+                            alert(`Penalty of ₦${penalty} applied to ${row.receiptNo}`);
+                          }
+                        }}>
+                          Apply Penalty
+                        </MenuItem>
                       </Menu>
                     </TableCell>
                   </TableRow>
@@ -313,16 +383,49 @@ const PaymentProcessing = () => {
                   <TableCell>{payment.dueDate}</TableCell>
                   <TableCell align="right" color="error">{formatCurrency(payment.penalty)}</TableCell>
                   <TableCell align="center">
-                    <Button variant="outlined" size="small" sx={{ mr: 1 }}>Send Reminder</Button>
-                    <Button variant="contained" size="small">Process Payment</Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      sx={{ mr: 1 }}
+                      onClick={() => {
+                        alert(`Reminder sent to ${payment.shopName}`);
+                      }}
+                    >
+                      Send Reminder
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => {
+                        alert(`Processing payment for ${payment.shopName}`);
+                        // In production: navigate to payment form with pre-filled data
+                      }}
+                    >
+                      Process Payment
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-            <Button variant="contained" color="secondary">Bulk Process Payments</Button>
-            <Button variant="outlined">Manage Compliance Status</Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => {
+                alert(`Processing ${dummyOutstandingPayments.length} outstanding payments`);
+              }}
+            >
+              Bulk Process Payments
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                alert('Opening compliance management interface');
+              }}
+            >
+              Manage Compliance Status
+            </Button>
           </Box>
         </Paper>
       </Box>

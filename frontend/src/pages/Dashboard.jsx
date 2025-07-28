@@ -1,10 +1,13 @@
 import React from 'react';
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, Button } from '@mui/material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   // Dummy data for demonstration
   const [stats, setStats] = useState({
     totalShops: 1250,
@@ -154,9 +157,25 @@ const Dashboard = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Quick Actions</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button variant="contained" startIcon={<AssessmentIcon />}>Register New Shop</Button>
-                <Button variant="outlined">Record Payment</Button>
-                <Button variant="outlined">Issue Permit</Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AssessmentIcon />}
+                  onClick={() => navigate('/shop-management')}
+                >
+                  Register New Shop
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/payments')}
+                >
+                  Record Payment
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/permits')}
+                >
+                  Issue Permit
+                </Button>
               </Box>
             </CardContent>
           </Card>

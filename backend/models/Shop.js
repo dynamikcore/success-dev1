@@ -16,13 +16,6 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: { msg: 'Business name cannot be empty.' },
       },
     },
-    ownerName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: 'Owner name cannot be empty.' },
-      },
-    },
     ownerPhone: {
       type: DataTypes.STRING,
       allowNull: false,

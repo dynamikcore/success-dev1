@@ -48,14 +48,16 @@ const wards = [
 ];
 
 const businessTypes = [
-  'Retail Shop',
-  'Restaurant',
-  'Bar',
-  'Salon',
-  'Supermarket',
-  'Pharmacy',
-  'Hotel',
-  'Other',
+  { value: 'retail', label: 'Retail Shop' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'services', label: 'Services' },
+  { value: 'pharmacy', label: 'Pharmacy' },
+  { value: 'electronics', label: 'Electronics' },
+  { value: 'clothing', label: 'Clothing' },
+  { value: 'grocery', label: 'Grocery' },
+  { value: 'supermarket', label: 'Supermarket' },
+  { value: 'bank', label: 'Bank' },
+  { value: 'other', label: 'Other' },
 ];
 
 const shopSizeCategories = [
@@ -99,10 +101,10 @@ const ShopRegistrationForm = () => {
       let fee = 0;
       const [type, size, revenue] = watchedFields;
 
-      if (type === 'Retail Shop') fee += 5000;
-      if (type === 'Restaurant') fee += 10000;
-      if (type === 'Bar') fee += 15000;
-      if (type === 'Hotel') fee += 50000;
+      if (type === 'retail') fee += 5000;
+      if (type === 'restaurant') fee += 10000;
+      if (type === 'services') fee += 15000;
+      if (type === 'bank') fee += 50000;
 
       if (size === 'Small') fee += 2000;
       if (size === 'Medium') fee += 5000;
@@ -117,14 +119,14 @@ const ShopRegistrationForm = () => {
     const determinePermits = () => {
       const [type] = watchedFields;
       let permits = [];
-      if (type === 'Restaurant' || type === 'Bar' || type === 'Hotel') {
+      if (type === 'restaurant') {
         permits.push('Food Handler\'s Permit', 'Health Certificate');
       }
-      if (type === 'Bar' || type === 'Hotel') {
-        permits.push('Liquor License');
-      }
-      if (type === 'Pharmacy') {
+      if (type === 'pharmacy') {
         permits.push('Pharmacy Board License');
+      }
+      if (type === 'bank') {
+        permits.push('Banking License');
       }
       setRequiredPermits(permits);
     };
@@ -139,9 +141,6 @@ const ShopRegistrationForm = () => {
     try {
       const formattedData = {
         ...data,
-        ownerName: data.ownerName,
-      ownerPhone: data.ownerPhone,
-        businessType: data.businessType.toLowerCase(),
         shopSizeCategory: data.shopSizeCategory.toLowerCase(),
       };
       await createShop(formattedData);
@@ -189,22 +188,6 @@ const ShopRegistrationForm = () => {
                 <TextField
                   {...field}
                   label="Owner Name"
-                  fullWidth
-                  required
-                  error={!!errors.ownerName}
-                  helperText={errors.ownerName?.message}
-                />
-              )}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Controller
-              name="ownerName"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Owner Full Name"
                   fullWidth
                   required
                   error={!!errors.ownerName}
@@ -301,8 +284,8 @@ const ShopRegistrationForm = () => {
                   helperText={errors.businessType?.message}
                 >
                   {businessTypes.map((type) => (
-                    <MenuItem key={type} value={type}>
-                      {type}
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
                     </MenuItem>
                   ))}
                 </TextField>
