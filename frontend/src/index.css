@@ -13,15 +13,19 @@ body {
 html {
   height: 100%;
   overflow-y: auto;
+  font-family: 'Montserrat', sans-serif;
 }
 
 #root {
   height: 100%;
   overflow-y: auto;
+  font-family: 'Montserrat', sans-serif;
 }
 
+/* Ensure all elements inherit Montserrat font */
 * {
   box-sizing: border-box;
+  font-family: 'Montserrat', sans-serif;
 }
 
 html {
@@ -31,4 +35,27 @@ html {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Override any remaining blue colors */
+.MuiButton-containedPrimary {
+  background-color: #008000 !important;
+}
+
+.MuiButton-outlinedPrimary {
+  border-color: #008000 !important;
+  color: #008000 !important;
+}
+
+.MuiIconButton-colorPrimary {
+  color: #008000 !important;
+}
+
+/* Ensure navigation links use green color */
+.MuiListItemButton-root:hover {
+  background-color: rgba(0, 128, 0, 0.04) !important;
+}
+
+.MuiListItemIcon-root {
+  color: #008000 !important;
 }
