@@ -5,32 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShopRegistrationForm from '../components/ShopRegistrationForm';
-
-// Dummy API functions (replace with actual API calls)
-const fetchShops = async (query = '') => {
-  console.log(`Fetching shops with query: ${query}`);
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  const dummyShops = [
-    { id: 'UVW/SHOP/001/2024', businessName: 'Mama Ngozi Provisions', ownerName: 'Ngozi Okoro', businessType: 'Retail', shopSize: 'Small', ward: 'Effurun', complianceStatus: 'Compliant' },
-    { id: 'UVW/SHOP/002/2024', businessName: 'Chukwudi Electronics', ownerName: 'Chukwudi Eze', businessType: 'Electronics', shopSize: 'Medium', ward: 'Ekpan', complianceStatus: 'Defaulter' },
-    { id: 'UVW/SHOP/003/2024', businessName: 'Grace Boutique', ownerName: 'Grace Adebayo', businessType: 'Fashion', shopSize: 'Small', ward: 'Uvwie', complianceStatus: 'Compliant' },
-    { id: 'UVW/SHOP/004/2024', businessName: 'Uvwie Fast Food', ownerName: 'Ahmed Musa', businessType: 'Food Service', shopSize: 'Medium', ward: 'Jeddo', complianceStatus: 'New' },
-    { id: 'UVW/SHOP/005/2024', businessName: 'Local Pharmacy', ownerName: 'Blessing Nwachukwu', businessType: 'Pharmacy', shopSize: 'Small', ward: 'Kokori', complianceStatus: 'Compliant' },
-  ];
-  return dummyShops.filter(
-    (shop) =>
-      shop.businessName.toLowerCase().includes(query.toLowerCase()) ||
-      shop.ownerName.toLowerCase().includes(query.toLowerCase()) ||
-      shop.id.toLowerCase().includes(query.toLowerCase())
-  );
-};
-
-const deleteShop = async (shopId) => {
-  console.log(`Deleting shop: ${shopId}`);
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  // In a real app, you'd send a DELETE request to your API
-  return { success: true };
-};
+import { fetchShops, deleteShop } from '../services/api';
 
 const ShopManagement = () => {
   const [shops, setShops] = useState([]);
@@ -38,14 +13,25 @@ const ShopManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openRegistrationForm, setOpenRegistrationForm] = useState(false);
   const [editingShop, setEditingShop] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0
+  });
 
-  const loadShops = async () => {
+  const loadShops = async (page = 1) => {
     setLoading(true);
     try {
-      const data = await fetchShops(searchQuery);
-      setShops(data);
+      const response = await fetchShops(searchQuery, page, 10);
+      setShops(response.shops || []);
+      setPagination({
+        currentPage: response.currentPage || 1,
+        totalPages: response.totalPages || 1,
+        totalItems: response.totalItems || 0
+      });
     } catch (error) {
       console.error('Failed to fetch shops:', error);
+      setShops([]);
     } finally {
       setLoading(false);
     }
@@ -75,12 +61,12 @@ const ShopManagement = () => {
   };
 
   const handleDeleteShop = async (shopId) => {
-    const shop = shops.find(s => s.id === shopId);
+    const shop = shops.find(s => s.shopId === shopId);
     if (window.confirm(`Are you sure you want to delete "${shop?.businessName}"? This action cannot be undone.`)) {
       try {
         await deleteShop(shopId);
         alert('Shop deleted successfully');
-        loadShops(); // Reload shops after deletion
+        loadShops(pagination.currentPage);
       } catch (error) {
         console.error('Failed to delete shop:', error);
         alert('Failed to delete shop. Please try again.');
@@ -164,12 +150,12 @@ const ShopManagement = () => {
                   </TableRow>
                 ) : (
                   shops.map((shop) => (
-                    <TableRow key={shop.id}>
-                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.id}</TableCell>
+                    <TableRow key={shop.shopId}>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.shopId}</TableCell>
                       <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.businessName}</TableCell>
                       <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.ownerName}</TableCell>
                       <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.businessType}</TableCell>
-                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.shopSize}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.shopSizeCategory}</TableCell>
                       <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.ward}</TableCell>
                       <TableCell>
                         <Chip
@@ -183,7 +169,7 @@ const ShopManagement = () => {
                         <IconButton size="small" onClick={() => handleEditShop(shop)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteShop(shop.id)}>
+                        <IconButton size="small" onClick={() => handleDeleteShop(shop.shopId)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>

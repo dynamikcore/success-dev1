@@ -97,6 +97,19 @@ export const getPermitById = async (permitId) => {
   return apiRequest(`/permits/${permitId}`);
 };
 
+export const renewPermit = async (permitId) => {
+  return apiRequest(`/permits/${permitId}/renew`, {
+    method: 'PUT',
+  });
+};
+
+export const sendReminder = async (permitIds) => {
+  return apiRequest('/permits/send-reminder', {
+    method: 'POST',
+    body: { permitIds },
+  });
+};
+
 // Revenue Type API functions
 export const fetchRevenueTypes = async () => {
   return apiRequest('/revenue-types');

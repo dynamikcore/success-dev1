@@ -44,7 +44,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RenewIcon from '@mui/icons-material/Autorenew';
 import SendIcon from '@mui/icons-material/Send';
 import SearchIcon from '@mui/icons-material/Search';
-import { fetchPermits, fetchShops, fetchPermitTypes, createPermit, renewPermit, sendReminder } from '../services/api';
+import { fetchPermits, fetchShops, fetchRevenueTypes, createPermit, renewPermit, sendReminder } from '../services/api';
 
 const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
 
@@ -94,7 +94,7 @@ const PermitManagement = () => {
         const [permitsResponse, shopsResponse, permitTypesResponse] = await Promise.all([
           fetchPermits(filters),
           fetchShops(''),
-          fetchPermitTypes(),
+          fetchRevenueTypes(),
         ]);
 
         setPermits(permitsResponse.permits || []);
