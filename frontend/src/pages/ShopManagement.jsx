@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Chip } from '@mui/material';
+import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Chip, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';
@@ -10,6 +10,7 @@ import { fetchShops, deleteShop } from '../services/api';
 const ShopManagement = () => {
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [openRegistrationForm, setOpenRegistrationForm] = useState(false);
   const [editingShop, setEditingShop] = useState(null);
@@ -21,6 +22,7 @@ const ShopManagement = () => {
 
   const loadShops = async (page = 1) => {
     setLoading(true);
+    setError('');
     try {
       const response = await fetchShops(searchQuery, page, 10);
       setShops(response.shops || []);
@@ -31,6 +33,7 @@ const ShopManagement = () => {
       });
     } catch (error) {
       console.error('Failed to fetch shops:', error);
+      setError('Failed to load shops. Please try again.');
       setShops([]);
     } finally {
       setLoading(false);
@@ -123,6 +126,12 @@ const ShopManagement = () => {
             Register New Shop
           </Button>
         </Box>
+
+        {error && (
+          <Box sx={{ mb: 2 }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        )}
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

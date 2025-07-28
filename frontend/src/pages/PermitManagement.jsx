@@ -99,7 +99,15 @@ const PermitManagement = () => {
 
         setPermits(permitsResponse.permits || []);
         setShops(shopsResponse.shops || []);
-        setPermitTypes(permitTypesResponse.permitTypes || []);
+
+        // Handle revenue types response properly
+        let types = [];
+        if (Array.isArray(permitTypesResponse)) {
+          types = permitTypesResponse;
+        } else if (permitTypesResponse && Array.isArray(permitTypesResponse.data)) {
+          types = permitTypesResponse.data;
+        }
+        setPermitTypes(types);
       } catch (error) {
         console.error('Failed to load data:', error);
         setPermits([]);
@@ -113,16 +121,15 @@ const PermitManagement = () => {
   }, [filterStatus, filterType]);
 
   useEffect(() => {
-    const type = permitTypes.find(pt => pt.id === watchPermitType);
+    const type = Array.isArray(permitTypes) ? permitTypes.find(pt => pt.id === watchPermitType) : null;
     setSelectedPermitType(type);
     if (watchPermitType && watch('issueDate')) {
-      // Calculate dummy expiry date (e.g., 1 year from issue date)
       const issueDate = dayjs(watch('issueDate'));
       if (issueDate.isValid()) {
         setValue('expiryDate', issueDate.add(1, 'year').format('YYYY-MM-DD'));
       }
     }
-  }, [watchPermitType, permitTypes, watch('issueDate')]);
+  }, [watchPermitType, permitTypes, watch, setValue]);
 
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -619,11 +626,15 @@ const PermitManagement = () => {
                       label="Permit Type"
                       error={!!error}
                     >
-                      {permitTypes.map((type) => (
-                        <MenuItem key={type.id} value={type.id}>
-                          {type.name} ({formatCurrency(type.fee)})
-                        </MenuItem>
-                      ))}
+                      {Array.isArray(permitTypes) && permitTypes.length > 0 ? (
+                        permitTypes.map((type) => (
+                          <MenuItem key={type.id} value={type.id}>
+                            {type.name} ({formatCurrency(type.fee || type.amount || 0)})
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>No permit types available</MenuItem>
+                      )}
                     </Select>
                   )}
                 />
@@ -635,7 +646,7 @@ const PermitManagement = () => {
                   fullWidth
                   margin="normal"
                   label="Permit Fee"
-                  value={formatCurrency(selectedPermitType.fee)}
+                  value={formatCurrency(selectedPermitType.fee || selectedPermitType.amount || 0)}
                   InputProps={{ readOnly: true }}
                 />
               )}

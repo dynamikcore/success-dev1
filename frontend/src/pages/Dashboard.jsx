@@ -1,41 +1,71 @@
-import React from 'react';
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Grid, Card, CardContent, Button } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Button, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow, Alert } from '@mui/material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import {
+  fetchDashboardStats,
+  fetchRecentRegistrations,
+  fetchRecentPayments,
+  fetchExpiringPermits,
+  formatNaira
+} from '../services/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-
-  // Dummy data for demonstration
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    totalShops: 1250,
-    todayRevenue: 750000,
-    pendingRenewals: 45,
-    complianceRate: 88,
+    totalShops: 0,
+    todayRevenue: 0,
+    pendingRenewals: 0,
+    complianceRate: 0,
   });
+  const [recentRegistrations, setRecentRegistrations] = useState([]);
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [expiringPermits, setExpiringPermits] = useState([]);
+  const [error, setError] = useState('');
 
-  const [recentRegistrations, setRecentRegistrations] = useState([
-    { id: 1, name: 'Grace Boutique', type: 'Fashion', date: '2023-10-26' },
-    { id: 2, name: 'Chukwudi Electronics', type: 'Electronics', date: '2023-10-25' },
-  ]);
-
-  const [recentPayments, setRecentPayments] = useState([
-    { id: 1, shop: 'Mama Ngozi Provisions', amount: 15000, date: '2023-10-26' },
-    { id: 2, shop: 'Uvwie Fast Food', amount: 10000, date: '2023-10-24' },
-  ]);
-
-  const [expiringPermits, setExpiringPermits] = useState([
-    { id: 1, shop: 'Local Pharmacy', type: 'Business Permit', expiry: '2023-11-15' },
-    { id: 2, shop: 'Tech Gadgets', type: 'Waste Levy', expiry: '2023-11-30' },
-  ]);
-
-  // In a real application, you would fetch this data from your backend
   useEffect(() => {
-    // Example of fetching data
-    // fetch('/api/dashboard-stats').then(res => res.json()).then(data => setStats(data));
+    const loadDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [statsData, registrations, payments, permits] = await Promise.all([
+          fetchDashboardStats(),
+          fetchRecentRegistrations(5),
+          fetchRecentPayments(5),
+          fetchExpiringPermits(30)
+        ]);
+
+        setStats(statsData);
+        setRecentRegistrations(registrations);
+        setRecentPayments(payments);
+        setExpiringPermits(permits);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
   }, []);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading Dashboard...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -55,7 +85,7 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" color="text.secondary" gutterBottom>Today's Revenue Collection</Typography>
-              <Typography variant="h5" color="primary">₦{stats.todayRevenue.toLocaleString()}</Typography>
+              <Typography variant="h5" color="primary">{formatNaira(stats.todayRevenue)}</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -84,7 +114,7 @@ const Dashboard = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Revenue Trend Chart</Typography>
               <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder</Typography>
+                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -94,7 +124,7 @@ const Dashboard = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Shop Distribution by Business Type</Typography>
               <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder</Typography>
+                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -104,7 +134,7 @@ const Dashboard = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>Revenue by Ward</Typography>
               <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder</Typography>
+                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -117,12 +147,30 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" gutterBottom>Recent Shop Registrations</Typography>
-              {/* Table Placeholder */}
-              <Box sx={{ height: 150, overflow: 'auto' }}>
-                {recentRegistrations.map(reg => (
-                  <Typography key={reg.id} variant="body2">{reg.name} ({reg.type}) - {reg.date}</Typography>
-                ))}
-              </Box>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Business Name</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Date</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentRegistrations.length > 0 ? (
+                    recentRegistrations.map((reg) => (
+                      <TableRow key={reg.shopId}>
+                        <TableCell>{reg.businessName}</TableCell>
+                        <TableCell>{reg.businessType}</TableCell>
+                        <TableCell>{new Date(reg.createdAt).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">No recent registrations</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </Grid>
@@ -130,12 +178,30 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" gutterBottom>Recent Payments</Typography>
-              {/* Table Placeholder */}
-              <Box sx={{ height: 150, overflow: 'auto' }}>
-                {recentPayments.map(payment => (
-                  <Typography key={payment.id} variant="body2">{payment.shop}: ₦{payment.amount.toLocaleString()} - {payment.date}</Typography>
-                ))}
-              </Box>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Shop</TableCell>
+                    <TableCell>Amount</TableCell>
+                    <TableCell>Date</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentPayments.length > 0 ? (
+                    recentPayments.map((payment) => (
+                      <TableRow key={payment.paymentId}>
+                        <TableCell>{payment.shopName}</TableCell>
+                        <TableCell>{formatNaira(payment.amountPaid)}</TableCell>
+                        <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center">No recent payments</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </Grid>
@@ -143,11 +209,16 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" gutterBottom>Expiring Permits Alert</Typography>
-              {/* Alert Placeholder */}
-              <Box sx={{ height: 150, overflow: 'auto', bgcolor: 'warning.light', p: 1, borderRadius: 1 }}>
-                {expiringPermits.map(permit => (
-                  <Typography key={permit.id} variant="body2" color="warning.dark">{permit.shop} ({permit.type}) expires {permit.expiry}</Typography>
-                ))}
+              <Box sx={{ height: 150, overflow: 'auto' }}>
+                {expiringPermits.length > 0 ? (
+                  expiringPermits.map((permit) => (
+                    <Alert key={permit.id} severity="warning" sx={{ mb: 1 }}>
+                      {permit.shopName} ({permit.permitType}) expires {new Date(permit.expiryDate).toLocaleDateString()}
+                    </Alert>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">No permits expiring soon</Typography>
+                )}
               </Box>
             </CardContent>
           </Card>

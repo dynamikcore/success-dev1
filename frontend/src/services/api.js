@@ -159,6 +159,52 @@ export const createRevenueType = async (revenueTypeData) => {
   });
 };
 
+// Dashboard API functions
+export const fetchDashboardStats = async () => {
+  try {
+    const response = await apiRequest('/dashboard/stats');
+    return response;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalShops: 0,
+      todayRevenue: 0,
+      pendingRenewals: 0,
+      complianceRate: 0
+    };
+  }
+};
+
+export const fetchRecentRegistrations = async (limit = 5) => {
+  try {
+    const response = await apiRequest(`/shops/recent?limit=${limit}`);
+    return response.shops || [];
+  } catch (error) {
+    console.error('Error fetching recent registrations:', error);
+    return [];
+  }
+};
+
+export const fetchRecentPayments = async (limit = 5) => {
+  try {
+    const response = await apiRequest(`/payments/recent?limit=${limit}`);
+    return response.payments || [];
+  } catch (error) {
+    console.error('Error fetching recent payments:', error);
+    return [];
+  }
+};
+
+export const fetchExpiringPermits = async (days = 30) => {
+  try {
+    const response = await apiRequest(`/permits/expiring?days=${days}`);
+    return response.permits || [];
+  } catch (error) {
+    console.error('Error fetching expiring permits:', error);
+    return [];
+  }
+};
+
 // Utility functions
 export const formatNaira = (amount) => {
   return new Intl.NumberFormat('en-NG', {
