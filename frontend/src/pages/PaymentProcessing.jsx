@@ -118,65 +118,98 @@ const PaymentProcessing = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Payment Processing & Revenue Collection</Typography>
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+          Payment Processing & Revenue Collection
+        </Typography>
 
         {/* Header Section */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card raised>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" gutterBottom>Today's Collection</Typography>
-                <Typography variant="h5" color="primary">{formatCurrency(dummyStats.todayCollection)}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Today's Collection
+                </Typography>
+                <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {formatCurrency(dummyStats.todayCollection)}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card raised>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" gutterBottom>This Month's Total</Typography>
-                <Typography variant="h5" color="primary">{formatCurrency(dummyStats.thisMonthTotal)}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  This Month's Total
+                </Typography>
+                <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {formatCurrency(dummyStats.thisMonthTotal)}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card raised>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" gutterBottom>Outstanding Amount</Typography>
-                <Typography variant="h5" color="error">{formatCurrency(dummyStats.outstandingAmount)}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Outstanding Amount
+                </Typography>
+                <Typography variant="h5" color="error" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {formatCurrency(dummyStats.outstandingAmount)}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card raised>
-              <CardContent>
-                <Typography variant="h6" color="text.secondary" gutterBottom>Number of Transactions</Typography>
-                <Typography variant="h5" color="primary">{dummyStats.numTransactions}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Number of Transactions
+                </Typography>
+                <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {dummyStats.numTransactions}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center' }}>
               <DatePicker
                 label="Start Date"
                 value={startDate}
                 onChange={(newValue) => setStartDate(newValue)}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small"
+                  }
+                }}
               />
               <DatePicker
                 label="End Date"
                 value={endDate}
                 onChange={(newValue) => setEndDate(newValue)}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small"
+                  }
+                }}
               />
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="contained">Record Payment</Button>
-              <Button variant="outlined">View Overdue</Button>
-              <Button variant="outlined">Print Daily Summary</Button>
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
+              justifyContent: 'flex-end'
+            }}>
+              <Button variant="contained" size="small">Record Payment</Button>
+              <Button variant="outlined" size="small">View Overdue</Button>
+              <Button variant="outlined" size="small">Print Daily Summary</Button>
             </Box>
           </Grid>
         </Grid>
@@ -222,15 +255,24 @@ const PaymentProcessing = () => {
         </Paper>
 
         {/* Payment History Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h5" gutterBottom>Payment History</Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 4 }}>
+          <Typography variant="h5" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+            Payment History
+          </Typography>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            mb: 2,
+            gap: { xs: 2, sm: 0 }
+          }}>
             <TextField
               label="Search History"
               variant="outlined"
               size="small"
               value={historySearchQuery}
               onChange={(e) => setHistorySearchQuery(e.target.value)}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -239,20 +281,26 @@ const PaymentProcessing = () => {
                 ),
               }}
             />
-            <Box>
+            <Box sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 1
+            }}>
               <Button
                 variant="outlined"
                 startIcon={<FilterListIcon />}
-                sx={{ mr: 1 }}
+                sx={{ mr: { xs: 0, sm: 1 } }}
                 onClick={handleAdvancedFilters}
+                size="small"
               >
                 Advanced Filters
               </Button>
               <Button
                 variant="outlined"
                 startIcon={<TableViewIcon />}
-                sx={{ mr: 1 }}
+                sx={{ mr: { xs: 0, sm: 1 } }}
                 onClick={handleExportExcel}
+                size="small"
               >
                 Export Excel
               </Button>
@@ -260,13 +308,14 @@ const PaymentProcessing = () => {
                 variant="outlined"
                 startIcon={<PictureAsPdfIcon />}
                 onClick={handleExportPDF}
+                size="small"
               >
                 Export PDF
               </Button>
             </Box>
           </Box>
-          <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="payment history table">
+          <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: { xs: 650, sm: 750 } }} aria-label="payment history table">
               <TableHead>
                 <TableRow>
                   <TableCell>Receipt No</TableCell>

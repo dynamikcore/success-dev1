@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
+import { LoadingProvider } from './contexts/LoadingContext';
 import { useLoading } from './contexts/LoadingContext';
 import { 
   ThemeProvider, 
@@ -92,6 +93,14 @@ const theme = createTheme({
 
 
 function App() {
+  return (
+    <LoadingProvider>
+      <AppContent />
+    </LoadingProvider>
+  );
+}
+
+function AppContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {

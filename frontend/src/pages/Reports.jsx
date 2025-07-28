@@ -363,9 +363,13 @@ const Reports = () => {
             {Object.entries(reportResult.summary).map(([key, value]) => (
               <Grid item xs={12} sm={6} md={3} key={key}>
                 <Card variant="outlined">
-                  <CardContent>
-                    <Typography color="text.secondary" gutterBottom>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</Typography>
-                    <Typography variant="h6">{typeof value === 'number' ? formatCurrency(value) : value}</Typography>
+                  <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                    <Typography color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                      {typeof value === 'number' ? formatCurrency(value) : value}
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -436,10 +440,10 @@ const Reports = () => {
           </TableContainer>
         )}
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-          <Button variant="outlined" onClick={handleExportPDF}>Export to PDF</Button>
-          <Button variant="outlined" onClick={handleExportExcel}>Export to Excel</Button>
-          <Button variant="outlined" onClick={handlePrint}>Print</Button>
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+          <Button variant="outlined" onClick={handleExportPDF} size="small">Export to PDF</Button>
+          <Button variant="outlined" onClick={handleExportExcel} size="small">Export to Excel</Button>
+          <Button variant="outlined" onClick={handlePrint} size="small">Print</Button>
         </Box>
       </Box>
     );
@@ -473,20 +477,34 @@ const Reports = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Comprehensive Reports</Typography>
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+          Comprehensive Reports
+        </Typography>
 
         <Paper elevation={2} sx={{ mb: 4 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="report categories tabs">
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="report categories tabs"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              '& .MuiTab-root': {
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                minWidth: { xs: 'auto', sm: 160 }
+              }
+            }}
+          >
             <Tab label="Revenue Reports" />
             <Tab label="Shop Analytics" />
             <Tab label="Permit Management" />
             <Tab label="Compliance Reports" />
           </Tabs>
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: { xs: 2, sm: 3 } }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={4}>
-                <FormControl fullWidth>
+                <FormControl fullWidth size="small">
                   <InputLabel>Select Report</InputLabel>
                   <Select
                     value={reportType}
@@ -506,7 +524,12 @@ const Reports = () => {
                   label="Start Date"
                   value={startDate}
                   onChange={(newValue) => setStartDate(newValue)}
-                  renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small"
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={3}>
@@ -514,7 +537,12 @@ const Reports = () => {
                   label="End Date"
                   value={endDate}
                   onChange={(newValue) => setEndDate(newValue)}
-                  renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: "small"
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={2}>
@@ -523,8 +551,9 @@ const Reports = () => {
                   onClick={handleGenerateReport}
                   disabled={!reportType || loading}
                   fullWidth
+                  size="small"
                 >
-                  {loading ? <CircularProgress size={24} /> : 'Generate'}
+                  {loading ? <CircularProgress size={20} /> : 'Generate'}
                 </Button>
               </Grid>
             </Grid>

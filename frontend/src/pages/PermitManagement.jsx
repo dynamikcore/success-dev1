@@ -338,53 +338,88 @@ const PermitManagement = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Permit Management</Typography>
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+          Permit Management
+        </Typography>
 
         {/* Header Section */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={2}>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>Active Permits</Typography>
-                <Typography variant="h5">{activePermits}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Active Permits
+                </Typography>
+                <Typography variant="h5" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {activePermits}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={2}>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>Expiring Soon (30 days)</Typography>
-                <Typography variant="h5">{expiringSoon}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Expiring Soon (30 days)
+                </Typography>
+                <Typography variant="h5" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {expiringSoon}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={2}>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>Expired Permits</Typography>
-                <Typography variant="h5">{expiredPermits}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  Expired Permits
+                </Typography>
+                <Typography variant="h5" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {expiredPermits}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={2}>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>This Month's Issuance</Typography>
-                <Typography variant="h5">{thisMonthsIssuance}</Typography>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Typography color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                  This Month's Issuance
+                </Typography>
+                <Typography variant="h5" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                  {thisMonthsIssuance}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{
+          mb: 3,
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: { xs: 2, sm: 0 }
+        }}>
           <Box>
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenForm(true)}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenForm(true)}
+              fullWidth={window.innerWidth < 600}
+              size="small"
+            >
               Issue New Permit
             </Button>
           </Box>
-          <Box>
-            <FormControl sx={{ minWidth: 120, mr: 2 }} size="small">
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2
+          }}>
+            <FormControl sx={{ minWidth: 120 }} size="small">
               <InputLabel>Status</InputLabel>
               <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
                 <MenuItem value="All">All</MenuItem>
@@ -411,6 +446,9 @@ const PermitManagement = () => {
             sx={{
               pl: { sm: 2 },
               pr: { xs: 1, sm: 1 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 1, sm: 0 },
               ...(selected.length > 0 && {
                 bgcolor: (theme) =>
                   alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
@@ -419,7 +457,7 @@ const PermitManagement = () => {
           >
             {selected.length > 0 ? (
               <Typography
-                sx={{ flex: '1 1 100%' }}
+                sx={{ flex: '1 1 100%', textAlign: { xs: 'center', sm: 'left' } }}
                 color="inherit"
                 variant="subtitle1"
                 component="div"
@@ -428,7 +466,7 @@ const PermitManagement = () => {
               </Typography>
             ) : (
               <Typography
-                sx={{ flex: '1 1 100%' }}
+                sx={{ flex: '1 1 100%', textAlign: { xs: 'center', sm: 'left' } }}
                 variant="h6"
                 id="tableTitle"
                 component="div"
@@ -438,7 +476,7 @@ const PermitManagement = () => {
             )}
 
             {selected.length > 0 ? (
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
                 <Tooltip title="Renew Selected">
                   <IconButton onClick={handleBulkRenew} disabled={loading}>
                     {loading ? <CircularProgress size={24} /> : <RenewIcon />}
@@ -449,11 +487,6 @@ const PermitManagement = () => {
                     {loading ? <CircularProgress size={24} /> : <SendIcon />}
                   </IconButton>
                 </Tooltip>
-                {/* <Tooltip title="Delete">
-                  <IconButton>
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip> */}
               </Box>
             ) : (
               <Tooltip title="Filter list">
@@ -463,9 +496,9 @@ const PermitManagement = () => {
               </Tooltip>
             )}
           </Toolbar>
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto' }}>
             <Table
-              sx={{ minWidth: 750 }}
+              sx={{ minWidth: { xs: 650, sm: 750 } }}
               aria-labelledby="tableTitle"
               size={'medium'}
             >

@@ -98,17 +98,27 @@ const ShopManagement = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Shop Management</Typography>
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+        Shop Management
+      </Typography>
 
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 4 }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: 2,
+          gap: { xs: 2, sm: 0 }
+        }}>
           <TextField
             label="Search Shops"
             variant="outlined"
             size="small"
             value={searchQuery}
             onChange={handleSearchChange}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -117,7 +127,13 @@ const ShopManagement = () => {
               ),
             }}
           />
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenRegistrationForm}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenRegistrationForm}
+            fullWidth={window.innerWidth < 600}
+            size="small"
+          >
             Register New Shop
           </Button>
         </Box>
@@ -127,36 +143,41 @@ const ShopManagement = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: { xs: 650, sm: 750 } }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>Shop ID</TableCell>
-                  <TableCell>Business Name</TableCell>
-                  <TableCell>Owner Name</TableCell>
-                  <TableCell>Business Type</TableCell>
-                  <TableCell>Size</TableCell>
-                  <TableCell>Ward</TableCell>
-                  <TableCell>Compliance</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Shop ID</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Business Name</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Owner Name</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Business Type</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Size</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Ward</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Compliance</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {shops.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">No shops found.</TableCell>
+                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>No shops found.</TableCell>
                   </TableRow>
                 ) : (
                   shops.map((shop) => (
                     <TableRow key={shop.id}>
-                      <TableCell>{shop.id}</TableCell>
-                      <TableCell>{shop.businessName}</TableCell>
-                      <TableCell>{shop.ownerName}</TableCell>
-                      <TableCell>{shop.businessType}</TableCell>
-                      <TableCell>{shop.shopSize}</TableCell>
-                      <TableCell>{shop.ward}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.id}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.businessName}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.ownerName}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.businessType}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.shopSize}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{shop.ward}</TableCell>
                       <TableCell>
-                        <Chip label={shop.complianceStatus} color={getComplianceChipColor(shop.complianceStatus)} size="small" />
+                        <Chip
+                          label={shop.complianceStatus}
+                          color={getComplianceChipColor(shop.complianceStatus)}
+                          size="small"
+                          sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                        />
                       </TableCell>
                       <TableCell align="right">
                         <IconButton size="small" onClick={() => handleEditShop(shop)}>
