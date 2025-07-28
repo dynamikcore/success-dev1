@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { Shop, Payment, Permit, RevenueType, sequelize } = require('../server'); // Assuming server.js exports models and sequelize instance
+// Fix the import - need to import from the correct location
+const db = require('../models'); // Import the database models
+const { Shop, Payment, Permit, RevenueType } = db;
 const { calculateTotalDue } = require('../utils/uvwieTaxCalculator');
 
 // Helper for validation
@@ -77,11 +79,19 @@ router.get('/', async (req, res) => {
 // POST /api/shops - Register new shop
 router.post('/', validateShopInput, async (req, res) => {
     try {
+        console.log('Creating shop with data:', req.body); // Debug log
         const newShop = await Shop.create(req.body);
+        console.log('Shop created successfully:', newShop); // Debug log
         res.status(201).json(newShop);
     } catch (error) {
         console.error('Error registering new shop:', error);
-        res.status(500).json({ message: 'Error registering new shop', error: error.message });
+        console.error('Error details:', error.message);
+        console.error('Request body:', req.body);
+        res.status(500).json({
+            message: 'Error registering new shop',
+            error: error.message,
+            details: error.errors || [] // Include validation errors if any
+        });
     }
 });
 
