@@ -94,9 +94,16 @@ const theme = createTheme({
 
 function App() {
   return (
-    <LoadingProvider>
-      <AppContent />
-    </LoadingProvider>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <LoadingProvider>
+        <AppContent />
+      </LoadingProvider>
+    </Router>
   );
 }
 
@@ -141,13 +148,7 @@ function AppContent() {
   const { isLoading } = useLoading();
 
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
         <CssBaseline />
         {isLoading && (
           <Box
@@ -254,8 +255,7 @@ function AppContent() {
                 Developed by Your Company Name
               </Typography>
             </Box>
-      </ThemeProvider>
-    </Router>
+    </ThemeProvider>
   );
 }
 
