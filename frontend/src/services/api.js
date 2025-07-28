@@ -39,14 +39,23 @@ export const createShop = async (shopData) => {
 };
 
 export const fetchShops = async (query = '', page = 1, limit = 10) => {
-  if (query && query.length >= 2) {
-    // Use search endpoint for autocomplete
-    const params = new URLSearchParams({ q: query });
-    return apiRequest(`/shops/search?${params.toString()}`);
-  } else {
-    // Use regular listing endpoint
-    const params = new URLSearchParams({ page, limit });
-    return apiRequest(`/shops?${params.toString()}`);
+  try {
+    if (query && query.length >= 2) {
+      // Use search endpoint for autocomplete
+      const params = new URLSearchParams({ q: query });
+      const response = await apiRequest(`/shops/search?${params.toString()}`);
+      console.log('Shop search response:', response); // Debug log
+      return response;
+    } else {
+      // Use regular listing endpoint
+      const params = new URLSearchParams({ page, limit });
+      const response = await apiRequest(`/shops?${params.toString()}`);
+      console.log('Shop list response:', response); // Debug log
+      return response;
+    }
+  } catch (error) {
+    console.error('Error fetching shops:', error);
+    return { shops: [] };
   }
 };
 
@@ -122,14 +131,25 @@ export const sendReminder = async (permitIds) => {
 
 // Revenue Type API functions
 export const fetchRevenueTypes = async () => {
-  const response = await apiRequest('/revenue-types');
-  return {
-    permitTypes: response.map(type => ({
-      id: type.id,
-      name: type.name,
-      fee: type.amount
-    }))
-  };
+  try {
+    const response = await apiRequest('/revenue-types');
+    console.log('API response for revenue types:', response); // Debug log
+
+    // Return the array directly, ensuring consistent format
+    if (Array.isArray(response)) {
+      return response;
+    } else if (response && Array.isArray(response.data)) {
+      return response.data;
+    } else if (response && Array.isArray(response.revenueTypes)) {
+      return response.revenueTypes;
+    } else {
+      console.warn('Unexpected revenue types response format:', response);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching revenue types:', error);
+    return [];
+  }
 };
 
 export const createRevenueType = async (revenueTypeData) => {

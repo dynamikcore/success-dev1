@@ -79,9 +79,11 @@ const PaymentForm = () => {
   const amountPaid = watch('amountPaid');
   const paymentDate = watch('paymentDate');
 
-  // Find the actual revenue type object from the string ID
-  const revenueTypeObject = revenueTypes.find(type => type.id === selectedRevenueType);
-  const amountDue = revenueTypeObject ? revenueTypeObject.amount : 0;
+  // Find the actual revenue type object from the string ID with safety checks
+  const revenueTypeObject = (Array.isArray(revenueTypes) && selectedRevenueType)
+    ? revenueTypes.find(type => type.id === selectedRevenueType)
+    : null;
+  const amountDue = revenueTypeObject ? (revenueTypeObject.amount || 0) : 0;
   const penalty = calculatePenalty(amountDue, paymentDate);
   const totalAmountDue = amountDue + penalty;
 
@@ -89,10 +91,23 @@ const PaymentForm = () => {
     const loadRevenueTypes = async () => {
       setRevenueTypeLoading(true);
       try {
-        const types = await fetchRevenueTypes();
+        const response = await fetchRevenueTypes();
+        console.log('Revenue types response:', response);
+
+        // Handle different response formats
+        let types = [];
+        if (Array.isArray(response)) {
+          types = response;
+        } else if (response && Array.isArray(response.data)) {
+          types = response.data;
+        } else if (response && Array.isArray(response.revenueTypes)) {
+          types = response.revenueTypes;
+        }
+
         setRevenueTypes(types);
       } catch (error) {
         console.error('Failed to fetch revenue types:', error);
+        setRevenueTypes([]);
       } finally {
         setRevenueTypeLoading(false);
       }
@@ -101,23 +116,44 @@ const PaymentForm = () => {
   }, []);
 
   const handleShopSearch = async (event, value) => {
-    if (value.length < 2) {
+    if (!value || typeof value !== 'string' || value.length < 2) {
       setShops([]);
       return;
     }
     setShopSearchLoading(true);
     try {
       const response = await fetchShops(value);
-      setShops(response.shops || []);
+      console.log('Shops response:', response);
+
+      // Handle different response formats
+      let shopsData = [];
+      if (Array.isArray(response)) {
+        shopsData = response;
+      } else if (response && Array.isArray(response.shops)) {
+        shopsData = response.shops;
+      } else if (response && Array.isArray(response.data)) {
+        shopsData = response.data;
+      }
+
+      setShops(shopsData);
     } catch (error) {
       console.error('Failed to search shops:', error);
+      setShops([]);
     } finally {
       setShopSearchLoading(false);
     }
   };
 
   const handleConfirmPayment = (data) => {
-    const revenueTypeObj = revenueTypes.find(type => type.id === data.revenueType);
+    const revenueTypeObj = Array.isArray(revenueTypes)
+      ? revenueTypes.find(type => type.id === data.revenueType)
+      : null;
+
+    if (!revenueTypeObj) {
+      setPaymentError('Please select a valid revenue type');
+      return;
+    }
+
     setPaymentSummary({
       ...data,
       revenueType: revenueTypeObj,
@@ -219,11 +255,15 @@ const PaymentForm = () => {
                           <CircularProgress size={20} /> Loading...
                         </MenuItem>
                       ) : (
-                        revenueTypes.map((type) => (
-                          <MenuItem key={type.id} value={type.id}>
-                            {type.name} (₦{type.amount.toLocaleString()})
-                          </MenuItem>
-                        ))
+                        Array.isArray(revenueTypes) && revenueTypes.length > 0 ? (
+                          revenueTypes.map((type) => (
+                            <MenuItem key={type.id} value={type.id}>
+                              {type.name} (₦{(type.amount || 0).toLocaleString()})
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No revenue types available</MenuItem>
+                        )
                       )}
                     </Select>
                     {errors.revenueType && <Typography color="error" variant="caption">{errors.revenueType.message}</Typography>}
