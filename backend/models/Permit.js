@@ -59,6 +59,29 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+  }, {
+    hooks: {
+      beforeCreate: (permit) => {
+        // Calculate expiry status based on dates
+        const now = new Date();
+        const expiryDate = new Date(permit.expiryDate);
+        const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+        if (daysUntilExpiry < 0) {
+          permit.permitStatus = 'Expired';
+        } else if (daysUntilExpiry <= 30) {
+          permit.permitStatus = 'Active'; // Will be marked as expiring soon in frontend
+        }
+      }
+    },
+    indexes: [
+      { unique: true, fields: ['permitId'] },
+      { fields: ['shopId'] },
+      { fields: ['permitType'] },
+      { fields: ['issueDate'] },
+      { fields: ['expiryDate'] },
+      { fields: ['permitStatus'] },
+    ],
   });
   Permit.associate = (db) => {
     Permit.belongsTo(db.Shop, { foreignKey: 'shopId' });

@@ -25,11 +25,35 @@ router.get('/', async (req, res) => {
       order: [['issueDate', 'DESC']]
     });
 
+    // Transform data to match frontend expectations
+    const transformedPermits = permits.map(permit => {
+      const now = new Date();
+      const expiryDate = new Date(permit.expiryDate);
+      const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+      let status = permit.permitStatus;
+      if (status === 'Active' && daysUntilExpiry <= 30 && daysUntilExpiry > 0) {
+        status = 'Expiring Soon';
+      } else if (daysUntilExpiry < 0) {
+        status = 'Expired';
+      }
+
+      return {
+        id: permit.permitId,
+        shopName: permit.Shop ? permit.Shop.businessName : 'Unknown',
+        permitType: permit.permitType,
+        issueDate: permit.issueDate.toISOString().split('T')[0],
+        expiryDate: permit.expiryDate.toISOString().split('T')[0],
+        status: status,
+        fee: parseFloat(permit.permitFee)
+      };
+    });
+
     res.json({
       totalItems: count,
       currentPage: parseInt(page),
       totalPages: Math.ceil(count / limit),
-      permits
+      permits: transformedPermits
     });
   } catch (error) {
     console.error('Error fetching permits:', error);

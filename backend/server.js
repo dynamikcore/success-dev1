@@ -33,7 +33,7 @@ app.use((err, req, res, next) => {
 });
 
 // Database sync and server start
-sequelize.sync({ force: false })
+sequelize.sync({ force: true }) // Change to true temporarily to recreate tables
   .then(() => {
     console.log('Database synced successfully.');
     app.listen(PORT, () => {

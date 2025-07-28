@@ -103,22 +103,33 @@ export const getPermitById = async (permitId) => {
   return apiRequest(`/permits/${permitId}`);
 };
 
-export const renewPermit = async (permitId) => {
-  return apiRequest(`/permits/${permitId}/renew`, {
-    method: 'PUT',
+export const renewPermit = async (permitIds) => {
+  // Handle both single ID and array of IDs
+  const ids = Array.isArray(permitIds) ? permitIds : [permitIds];
+  return apiRequest('/permits/renew', {
+    method: 'POST',
+    body: { permitIds: ids },
   });
 };
 
 export const sendReminder = async (permitIds) => {
+  const ids = Array.isArray(permitIds) ? permitIds : [permitIds];
   return apiRequest('/permits/send-reminder', {
     method: 'POST',
-    body: { permitIds },
+    body: { permitIds: ids },
   });
 };
 
 // Revenue Type API functions
 export const fetchRevenueTypes = async () => {
-  return apiRequest('/revenue-types');
+  const response = await apiRequest('/revenue-types');
+  return {
+    permitTypes: response.map(type => ({
+      id: type.id,
+      name: type.name,
+      fee: type.amount
+    }))
+  };
 };
 
 export const createRevenueType = async (revenueTypeData) => {

@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       allowNull: false,
       primaryKey: true,
-      defaultValue: () => `REV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      defaultValue: () => `RT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
     typeName: {
       type: DataTypes.STRING,
@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'Fixed',
     },
     frequency: {
-      type: DataTypes.ENUM('Annual', 'Monthly', 'Quarterly', 'One-time'),
+      type: DataTypes.ENUM('One-time', 'Monthly', 'Quarterly', 'Annual'),
       allowNull: false,
       defaultValue: 'Annual',
     },
@@ -42,10 +42,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: true,
     },
+  }, {
+    indexes: [
+      { unique: true, fields: ['typeId'] },
+      { fields: ['typeName'] },
+      { fields: ['calculationMethod'] },
+      { fields: ['frequency'] },
+      { fields: ['isActive'] },
+    ],
   });
 
   RevenueType.associate = (db) => {
-    RevenueType.hasMany(db.Payment, { foreignKey: 'revenueTypeId' });
+    RevenueType.hasMany(db.Payment, { foreignKey: 'revenueTypeId', as: 'Payments' });
   };
 
   return RevenueType;

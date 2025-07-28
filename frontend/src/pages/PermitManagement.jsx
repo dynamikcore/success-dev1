@@ -597,8 +597,8 @@ const PermitManagement = () => {
                       error={!!error}
                     >
                       {shops.map((shop) => (
-                        <MenuItem key={shop.id} value={shop.id}>
-                          {shop.name}
+                        <MenuItem key={shop.shopId} value={shop.shopId}>
+                          {shop.businessName}
                         </MenuItem>
                       ))}
                     </Select>

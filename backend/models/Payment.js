@@ -7,6 +7,12 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: () => `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     },
+    receiptNumber: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
+      defaultValue: () => `RCP-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    },
     shopId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -23,10 +29,13 @@ module.exports = (sequelize, DataTypes) => {
         key: 'typeId',
       },
     },
-    assessmentYear: {
-      type: DataTypes.INTEGER,
+    amount: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      defaultValue: () => new Date().getFullYear(),
+      validate: {
+        isDecimal: true,
+        min: 0,
+      },
     },
     amountDue: {
       type: DataTypes.DECIMAL(10, 2),
@@ -37,27 +46,20 @@ module.exports = (sequelize, DataTypes) => {
         min: 0,
       },
     },
-    amount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      validate: {
-        isDecimal: true,
-        min: 0,
-      },
-    },
-    paymentMethod: {
-      type: DataTypes.ENUM('Cash', 'Bank Transfer', 'POS', 'Cheque', 'Online'),
-      allowNull: false,
-      defaultValue: 'Cash',
-    },
     paymentDate: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
-    dueDate: {
-      type: DataTypes.DATE,
-      allowNull: true,
+    paymentMethod: {
+      type: DataTypes.ENUM('Cash', 'Bank Transfer', 'POS', 'Online', 'Cheque'),
+      allowNull: false,
+      defaultValue: 'Cash',
+    },
+    paymentStatus: {
+      type: DataTypes.ENUM('Completed', 'Pending', 'Failed', 'Refunded'),
+      allowNull: false,
+      defaultValue: 'Completed',
     },
     collectedBy: {
       type: DataTypes.STRING,
@@ -66,21 +68,19 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: { msg: 'Collector name cannot be empty.' },
       },
     },
-    receiptNumber: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: false,
-      defaultValue: () => `RCP-${Date.now()}`,
-    },
-    paymentStatus: {
-      type: DataTypes.ENUM('Paid', 'Partially Paid', 'Pending', 'Overdue'),
-      allowNull: false,
-      defaultValue: 'Paid',
-    },
-    description: {
+    notes: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+  }, {
+    indexes: [
+      { unique: true, fields: ['paymentId'] },
+      { unique: true, fields: ['receiptNumber'] },
+      { fields: ['shopId'] },
+      { fields: ['revenueTypeId'] },
+      { fields: ['paymentStatus'] },
+      { fields: ['paymentDate'] },
+    ],
   });
 
   Payment.associate = (db) => {
