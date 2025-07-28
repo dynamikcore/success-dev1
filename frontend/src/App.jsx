@@ -36,7 +36,9 @@ import PaymentForm from './components/PaymentForm';
 import PaymentProcessing from './pages/PaymentProcessing';
 import Reports from './pages/Reports';
 import PermitManagement from './pages/PermitManagement';
-const Shops = () => <ShopRegistrationForm />;
+import ShopManagement from './pages/ShopManagement';
+
+
 const Payments = () => <PaymentProcessing />;
 const PermitsComponent = () => <PermitManagement />;
 const ReportsComponent = () => <Reports />;
@@ -100,7 +102,7 @@ function App() {
 
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Shop Registration', icon: <StoreIcon />, path: '/shops' },
+    { text: 'Shop Management', icon: <StoreIcon />, path: '/shop-management' },
     { text: 'Payment Processing', icon: <PaymentIcon />, path: '/payments' },
     { text: 'Permit Management', icon: <AssignmentIcon />, path: '/permits' },
     { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
@@ -210,12 +212,13 @@ function App() {
               >
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/shops" element={<Shops />} />
-                  <Route path="/payments" element={<Payments />} />
-                  <Route path="/reports" element={<ReportsComponent />} />
-                  <Route path="/permits" element={<PermitsComponent />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/login" element={<Login />} />
+                  
+                  <Route path="/shop-management" element={<ShopManagement />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/permits" element={<PermitsComponent />} />
+          <Route path="/reports" element={<ReportsComponent />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<Login />} />} />
                 </Routes>
               </Box>
             </Box>
