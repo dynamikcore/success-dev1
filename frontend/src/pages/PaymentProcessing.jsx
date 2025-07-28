@@ -32,6 +32,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableViewIcon from '@mui/icons-material/TableView';
 
 import PaymentForm from '../components/PaymentForm';
+import { fetchPayments, fetchShops } from '../services/api';
 
 // Dummy Data and API functions (replace with actual data and API calls)
 const dummyStats = {
@@ -69,9 +70,45 @@ const dummyOutstandingPayments = [
 const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
 
 const PaymentProcessing = () => {
-  const [startDate, setStartDate] = useState(dayjs().subtract(1, 'month'));
+  const [payments, setPayments] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState(dayjs().subtract(30, 'day'));
   const [endDate, setEndDate] = useState(dayjs());
   const [historySearchQuery, setHistorySearchQuery] = useState('');
+
+  const loadPayments = async () => {
+    setLoading(true);
+    try {
+      const filters = {
+        startDate: startDate.format('YYYY-MM-DD'),
+        endDate: endDate.format('YYYY-MM-DD'),
+      };
+      const response = await fetchPayments(filters);
+      setPayments(response.payments || []);
+    } catch (error) {
+      console.error('Failed to fetch payments:', error);
+      setPayments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadShops = async () => {
+    try {
+      const response = await fetchShops();
+      setShops(response.shops || []);
+    } catch (error) {
+      console.error('Failed to fetch shops:', error);
+      setShops([]);
+    }
+  };
+
+  useEffect(() => {
+    loadPayments();
+    loadShops();
+  }, [startDate, endDate]);
+
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 

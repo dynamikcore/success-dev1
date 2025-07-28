@@ -1,5 +1,3 @@
-const { Sequelize, Op } = require('sequelize');
-
 module.exports = (sequelize, DataTypes) => {
   const Payment = sequelize.define('Payment', {
     paymentId: {
@@ -12,21 +10,23 @@ module.exports = (sequelize, DataTypes) => {
     shopId: {
       type: DataTypes.STRING,
       allowNull: false,
-      references: { model: 'Shops', key: 'shopId' },
+      references: {
+        model: 'Shops',
+        key: 'shopId',
+      },
     },
     revenueTypeId: {
       type: DataTypes.STRING,
       allowNull: false,
-      references: { model: 'RevenueTypes', key: 'typeId' },
+      references: {
+        model: 'RevenueTypes',
+        key: 'typeId',
+      },
     },
     assessmentYear: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: new Date().getFullYear(),
-      validate: {
-        isInt: true,
-        min: 2000, // Assuming revenue collection started after 2000
-      },
+      defaultValue: () => new Date().getFullYear(),
     },
     amountDue: {
       type: DataTypes.DECIMAL(10, 2),
@@ -39,11 +39,15 @@ module.exports = (sequelize, DataTypes) => {
     amountPaid: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-      defaultValue: 0.00,
       validate: {
         isDecimal: true,
         min: 0,
       },
+    },
+    paymentMethod: {
+      type: DataTypes.ENUM('Cash', 'Bank Transfer', 'POS', 'Cheque', 'Online'),
+      allowNull: false,
+      defaultValue: 'Cash',
     },
     paymentDate: {
       type: DataTypes.DATE,
@@ -52,63 +56,36 @@ module.exports = (sequelize, DataTypes) => {
     },
     dueDate: {
       type: DataTypes.DATE,
-      allowNull: true, // Can be null if not applicable or calculated later
+      allowNull: true,
     },
-    paymentMethod: {
-      type: DataTypes.ENUM("Cash", "Bank Transfer", "POS", "Online", "Cheque"),
+    collectedBy: {
+      type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        notEmpty: { msg: 'Payment method cannot be empty.' },
+        notEmpty: { msg: 'Collector name cannot be empty.' },
       },
     },
     receiptNumber: {
       type: DataTypes.STRING,
       unique: true,
       allowNull: false,
-      defaultValue: () => `REC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      defaultValue: () => `RCP-${Date.now()}`,
     },
     paymentStatus: {
-      type: DataTypes.ENUM("Paid", "Pending", "Overdue", "Partial"),
+      type: DataTypes.ENUM('Paid', 'Partially Paid', 'Pending', 'Overdue'),
       allowNull: false,
-      defaultValue: "Pending",
-    },
-    collectedBy: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: { msg: 'Collected by cannot be empty.' },
-      },
+      defaultValue: 'Paid',
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    penaltyAmount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0.00,
-      validate: {
-        isDecimal: true,
-        min: 0,
-      },
-    },
-  }, {
-    indexes: [
-      { unique: true, fields: ['paymentId'] },
-      { unique: true, fields: ['receiptNumber'] },
-      { fields: ['shopId'] },
-      { fields: ['revenueTypeId'] },
-      { fields: ['paymentStatus'] },
-      { fields: ['paymentDate'] },
-    ],
   });
 
   Payment.associate = (db) => {
     Payment.belongsTo(db.Shop, { foreignKey: 'shopId' });
     Payment.belongsTo(db.RevenueType, { foreignKey: 'revenueTypeId' });
   };
-
-
 
   return Payment;
 };

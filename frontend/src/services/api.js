@@ -38,18 +38,27 @@ export const createShop = async (shopData) => {
   });
 };
 
-export const fetchShops = async (query = '') => {
-  const params = query ? `?search=${encodeURIComponent(query)}` : '';
-  return apiRequest(`/shops${params}`);
+export const fetchShops = async (query = '', page = 1, limit = 10) => {
+  const params = new URLSearchParams({ page, limit });
+  if (query) params.append('search', query);
+  return apiRequest(`/shops?${params.toString()}`);
 };
 
 export const getShopById = async (shopId) => {
   return apiRequest(`/shops/${shopId}`);
 };
 
-// Revenue Type API functions
-export const fetchRevenueTypes = async () => {
-  return apiRequest('/revenue-types');
+export const updateShop = async (shopId, shopData) => {
+  return apiRequest(`/shops/${shopId}`, {
+    method: 'PUT',
+    body: shopData,
+  });
+};
+
+export const deleteShop = async (shopId) => {
+  return apiRequest(`/shops/${shopId}`, {
+    method: 'DELETE',
+  });
 };
 
 // Payment API functions
@@ -60,10 +69,44 @@ export const createPayment = async (paymentData) => {
   });
 };
 
-export const getPayments = async (filters = {}) => {
+export const fetchPayments = async (filters = {}) => {
   const params = new URLSearchParams(filters).toString();
   const endpoint = params ? `/payments?${params}` : '/payments';
   return apiRequest(endpoint);
+};
+
+export const getPaymentById = async (paymentId) => {
+  return apiRequest(`/payments/${paymentId}`);
+};
+
+// Permit API functions
+export const createPermit = async (permitData) => {
+  return apiRequest('/permits', {
+    method: 'POST',
+    body: permitData,
+  });
+};
+
+export const fetchPermits = async (filters = {}) => {
+  const params = new URLSearchParams(filters).toString();
+  const endpoint = params ? `/permits?${params}` : '/permits';
+  return apiRequest(endpoint);
+};
+
+export const getPermitById = async (permitId) => {
+  return apiRequest(`/permits/${permitId}`);
+};
+
+// Revenue Type API functions
+export const fetchRevenueTypes = async () => {
+  return apiRequest('/revenue-types');
+};
+
+export const createRevenueType = async (revenueTypeData) => {
+  return apiRequest('/revenue-types', {
+    method: 'POST',
+    body: revenueTypeData,
+  });
 };
 
 // Utility functions

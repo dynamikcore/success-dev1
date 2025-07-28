@@ -44,75 +44,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RenewIcon from '@mui/icons-material/Autorenew';
 import SendIcon from '@mui/icons-material/Send';
 import SearchIcon from '@mui/icons-material/Search';
+import { fetchPermits, fetchShops, fetchPermitTypes, createPermit, renewPermit, sendReminder } from '../services/api';
 
-// Dummy Data and API functions
 const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
-
-const dummyPermits = [
-  { id: 'P001', shopName: 'Shop A', permitType: 'Business Permit', issueDate: '2023-01-01', expiryDate: '2023-12-31', status: 'Active' },
-  { id: 'P002', shopName: 'Shop B', permitType: 'Signage Permit', issueDate: '2023-03-15', expiryDate: '2023-09-30', status: 'Expired' },
-  { id: 'P003', shopName: 'Shop C', permitType: 'Waste Permit', issueDate: '2023-06-01', expiryDate: '2024-01-31', status: 'Expiring Soon' },
-  { id: 'P004', shopName: 'Shop D', permitType: 'Business Permit', issueDate: '2023-07-20', expiryDate: '2024-07-19', status: 'Active' },
-  { id: 'P005', shopName: 'Shop E', permitType: 'Signage Permit', issueDate: '2023-02-10', expiryDate: '2023-08-09', status: 'Expired' },
-  { id: 'P006', shopName: 'Shop F', permitType: 'Business Permit', issueDate: '2023-11-01', expiryDate: '2024-10-31', status: 'Active' },
-  { id: 'P007', shopName: 'Shop G', permitType: 'Waste Permit', issueDate: '2023-10-25', expiryDate: '2023-12-25', status: 'Expiring Soon' },
-];
-
-const dummyShops = [
-  { id: 'S001', name: 'Shop A' },
-  { id: 'S002', name: 'Shop B' },
-  { id: 'S003', name: 'Shop C' },
-  { id: 'S004', name: 'Shop D' },
-  { id: 'S005', name: 'Shop E' },
-  { id: 'S006', name: 'Shop F' },
-  { id: 'S007', name: 'Shop G' },
-];
-
-const dummyPermitTypes = [
-  { id: 'PT001', name: 'Business Permit', fee: 15000 },
-  { id: 'PT002', name: 'Signage Permit', fee: 5000 },
-  { id: 'PT003', name: 'Waste Permit', fee: 2500 },
-];
-
-const fetchPermits = async (filters) => {
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  let filteredPermits = dummyPermits;
-  if (filters?.status) {
-    filteredPermits = filteredPermits.filter(p => p.status === filters.status);
-  }
-  if (filters?.type) {
-    filteredPermits = filteredPermits.filter(p => p.permitType === filters.type);
-  }
-  return filteredPermits;
-};
-
-const fetchShops = async (query) => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return dummyShops.filter(shop => shop.name.toLowerCase().includes(query.toLowerCase()));
-};
-
-const fetchPermitTypes = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return dummyPermitTypes;
-};
-
-const issuePermit = async (permitData) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  console.log('Issuing permit:', permitData);
-  return { success: true, permitId: `P${Math.floor(Math.random() * 1000)}` };
-};
-
-const renewPermit = async (permitIds) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  console.log('Renewing permits:', permitIds);
-  return { success: true, renewedCount: permitIds.length };
-};
-
-const sendReminder = async (permitIds) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  console.log('Sending reminders for permits:', permitIds);
-  return { success: true, sentCount: permitIds.length };
-};
 
 // Schema for Permit Issuance Form
 const permitSchema = yup.object().shape({
@@ -150,20 +84,33 @@ const PermitManagement = () => {
   const watchPermitType = watch('permitType');
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadPermits = async () => {
       setLoading(true);
-      const [permitsData, shopsData, permitTypesData] = await Promise.all([
-        fetchPermits(),
-        fetchShops(''),
-        fetchPermitTypes(),
-      ]);
-      setPermits(permitsData);
-      setShops(shopsData);
-      setPermitTypes(permitTypesData);
-      setLoading(false);
+      try {
+        const filters = {};
+        if (filterStatus !== 'All') filters.status = filterStatus;
+        if (filterType !== 'All') filters.permitType = filterType;
+
+        const [permitsResponse, shopsResponse, permitTypesResponse] = await Promise.all([
+          fetchPermits(filters),
+          fetchShops(''),
+          fetchPermitTypes(),
+        ]);
+
+        setPermits(permitsResponse.permits || []);
+        setShops(shopsResponse.shops || []);
+        setPermitTypes(permitTypesResponse.permitTypes || []);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        setPermits([]);
+        setShops([]);
+        setPermitTypes([]);
+      } finally {
+        setLoading(false);
+      }
     };
-    loadData();
-  }, []);
+    loadPermits();
+  }, [filterStatus, filterType]);
 
   useEffect(() => {
     const type = permitTypes.find(pt => pt.id === watchPermitType);
@@ -277,18 +224,17 @@ const PermitManagement = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const result = await issuePermit(data);
-      if (result.success) {
-        alert(`Permit ${result.permitId} issued successfully!`);
+      const result = await createPermit(data);
+      if (result.permit) {
+        alert(`Permit ${result.permit.id} issued successfully!`);
         setOpenForm(false);
         reset();
-        // Refresh permits list
-        const updatedPermits = await fetchPermits();
-        setPermits(updatedPermits);
+        const permitsResponse = await fetchPermits();
+        setPermits(permitsResponse.permits || []);
       }
     } catch (error) {
       console.error('Error issuing permit:', error);
-      alert('Failed to issue permit.');
+      alert(error.response?.data?.message || 'Failed to issue permit.');
     } finally {
       setLoading(false);
     }
@@ -299,11 +245,11 @@ const PermitManagement = () => {
     setLoading(true);
     try {
       const result = await renewPermit(selected);
-      if (result.success) {
-        alert(`${result.renewedCount} permits renewed.`);
+      if (result.renewedPermits) {
+        alert(`${result.renewedPermits.length} permits renewed.`);
         setSelected([]);
-        const updatedPermits = await fetchPermits();
-        setPermits(updatedPermits);
+        const permitsResponse = await fetchPermits();
+        setPermits(permitsResponse.permits || []);
       }
     } catch (error) {
       console.error('Error renewing permits:', error);
@@ -318,8 +264,8 @@ const PermitManagement = () => {
     setLoading(true);
     try {
       const result = await sendReminder(selected);
-      if (result.success) {
-        alert(`${result.sentCount} reminders sent.`);
+      if (result.sentReminders) {
+        alert(`${result.sentReminders.length} reminders sent.`);
         setSelected([]);
       }
     } catch (error) {
@@ -600,9 +546,8 @@ const PermitManagement = () => {
                               try {
                                 await renewPermit([row.id]);
                                 alert(`Permit ${row.id} renewed successfully`);
-                                // Refresh permits list
-                                const updatedPermits = await fetchPermits();
-                                setPermits(updatedPermits);
+                                const permitsResponse = await fetchPermits();
+                                setPermits(permitsResponse.permits || []);
                               } catch (error) {
                                 alert('Failed to renew permit');
                               }
