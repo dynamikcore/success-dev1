@@ -58,44 +58,24 @@ const Login = () => <Typography variant="h4" sx={{ p: 3 }}>Login Page</Typograph
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#008000', // Green - Agency color
-      light: '#4caf50',
-      dark: '#006400',
-      contrastText: '#ffffff',
+      main: '#008000', // Green
     },
     secondary: {
-      main: '#008000', // Also green instead of default blue
-      light: '#4caf50',
-      dark: '#006400',
-      contrastText: '#ffffff',
+      main: '#FFFFFF', // White
     },
     background: {
       default: '#f0f0f0',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#333333',
-      secondary: '#666666',
     },
   },
   typography: {
-    fontFamily: '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
-    h1: { fontFamily: '"Montserrat", sans-serif' },
-    h2: { fontFamily: '"Montserrat", sans-serif' },
-    h3: { fontFamily: '"Montserrat", sans-serif' },
-    h4: { fontFamily: '"Montserrat", sans-serif' },
-    h5: { fontFamily: '"Montserrat", sans-serif' },
-    h6: { fontFamily: '"Montserrat", sans-serif' },
-    body1: { fontFamily: '"Montserrat", sans-serif' },
-    body2: { fontFamily: '"Montserrat", sans-serif' },
-    button: { fontFamily: '"Montserrat", sans-serif' },
+    fontFamily: 'Montserrat, sans-serif',
   },
   components: {
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#008000', // Green app bar
-          color: '#ffffff',
+          backgroundColor: '#008000 !important', // Force green app bar
+          color: '#ffffff !important',
         },
       },
     },
@@ -110,160 +90,6 @@ const theme = createTheme({
       styleOverrides: {
         primary: {
           color: '#008000', // Green text for list items
-          fontFamily: '"Montserrat", sans-serif',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        containedPrimary: {
-          backgroundColor: '#008000',
-          color: '#ffffff',
-          fontFamily: '"Montserrat", sans-serif',
-          '&:hover': {
-            backgroundColor: '#006400',
-          },
-        },
-        outlinedPrimary: {
-          borderColor: '#008000',
-          color: '#008000',
-          fontFamily: '"Montserrat", sans-serif',
-          '&:hover': {
-            borderColor: '#006400',
-            backgroundColor: 'rgba(0, 128, 0, 0.04)',
-          },
-        },
-        textPrimary: {
-          color: '#008000',
-          fontFamily: '"Montserrat", sans-serif',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 128, 0, 0.04)',
-          },
-        },
-      },
-    },
-    MuiIconButton: {
-      styleOverrides: {
-        root: {
-          color: '#008000',
-          '&:hover': {
-            backgroundColor: 'rgba(0, 128, 0, 0.04)',
-          },
-        },
-      },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          fontFamily: '"Montserrat", sans-serif',
-          '&.Mui-selected': {
-            color: '#008000',
-          },
-        },
-      },
-    },
-    MuiTabs: {
-      styleOverrides: {
-        indicator: {
-          backgroundColor: '#008000',
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            fontFamily: '"Montserrat", sans-serif',
-            '&.Mui-focused fieldset': {
-              borderColor: '#008000',
-            },
-          },
-          '& .MuiInputLabel-root': {
-            fontFamily: '"Montserrat", sans-serif',
-            '&.Mui-focused': {
-              color: '#008000',
-            },
-          },
-        },
-      },
-    },
-    MuiFormControl: {
-      styleOverrides: {
-        root: {
-          '& .MuiInputLabel-root': {
-            fontFamily: '"Montserrat", sans-serif',
-            '&.Mui-focused': {
-              color: '#008000',
-            },
-          },
-        },
-      },
-    },
-    MuiSelect: {
-      styleOverrides: {
-        root: {
-          fontFamily: '"Montserrat", sans-serif',
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#008000',
-          },
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        colorPrimary: {
-          backgroundColor: '#008000',
-          color: '#ffffff',
-          fontFamily: '"Montserrat", sans-serif',
-        },
-      },
-    },
-    MuiLinearProgress: {
-      styleOverrides: {
-        colorPrimary: {
-          backgroundColor: 'rgba(0, 128, 0, 0.2)',
-        },
-        barColorPrimary: {
-          backgroundColor: '#008000',
-        },
-      },
-    },
-    MuiCircularProgress: {
-      styleOverrides: {
-        colorPrimary: {
-          color: '#008000',
-        },
-      },
-    },
-    MuiCheckbox: {
-      styleOverrides: {
-        colorPrimary: {
-          color: '#008000',
-          '&.Mui-checked': {
-            color: '#008000',
-          },
-        },
-      },
-    },
-    MuiRadio: {
-      styleOverrides: {
-        colorPrimary: {
-          color: '#008000',
-          '&.Mui-checked': {
-            color: '#008000',
-          },
-        },
-      },
-    },
-    MuiSwitch: {
-      styleOverrides: {
-        colorPrimary: {
-          '& .MuiSwitch-thumb': {
-            color: '#008000',
-          },
-          '& .MuiSwitch-track': {
-            backgroundColor: 'rgba(0, 128, 0, 0.5)',
-          },
         },
       },
     },
@@ -475,8 +301,8 @@ function AppContent() {
           sx={{
             p: 2,
             mt: 'auto',
-            backgroundColor: 'primary.main',
-            color: 'white',
+            backgroundColor: '#008000 !important', // Force green color
+            color: 'white !important',
             textAlign: 'center',
             width: '100%',
           }}
