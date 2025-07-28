@@ -25,11 +25,11 @@ import { formatNaira } from '../services/api';
 // Define Yup schema for validation
 const schema = yup.object().shape({
   businessName: yup.string().required('Business Name is required'),
-  ownerFullName: yup.string().required('Owner Full Name is required'),
-  ownerPhoneNumber: yup
+  ownerName: yup.string().required('Owner Name is required'),
+  ownerPhone: yup
     .string()
     .matches(/^\+234[789]\d{9}$/, 'Phone number must be in +234xxxxxxxxxx format')
-    .required('Owner Phone Number is required'),
+    .required('Owner Phone is required'),
   ownerEmail: yup.string().email('Invalid email format').optional(),
   shopAddress: yup.string().required('Shop Address is required'),
   ward: yup.string().required('Ward is required'),
@@ -80,8 +80,8 @@ const ShopRegistrationForm = () => {
     resolver: yupResolver(schema),
     defaultValues: {
       businessName: '',
-      ownerFullName: '',
-      ownerPhoneNumber: '',
+      ownerName: '',
+      ownerPhone: '',
       ownerEmail: '',
       shopAddress: '',
       ward: '',
@@ -137,11 +137,21 @@ const ShopRegistrationForm = () => {
     showLoading();
     setSubmissionStatus(null);
     try {
-      await createShop(data);
+      const formattedData = {
+        ...data,
+        ownerName: data.ownerName,
+      ownerPhone: data.ownerPhone,
+        businessType: data.businessType.toLowerCase(),
+        shopSizeCategory: data.shopSizeCategory.toLowerCase(),
+      };
+      await createShop(formattedData);
       setSubmissionStatus('success');
       reset(); // Clear form on success
     } catch (error) {
       console.error('Shop registration failed:', error);
+      if (error.response && error.response.data) {
+        console.error('Backend error details:', error.response.data);
+      }
       setSubmissionStatus('error');
     } finally {
       hideLoading();
@@ -173,7 +183,23 @@ const ShopRegistrationForm = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <Controller
-              name="ownerFullName"
+              name="ownerName"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Owner Name"
+                  fullWidth
+                  required
+                  error={!!errors.ownerName}
+                  helperText={errors.ownerName?.message}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Controller
+              name="ownerName"
               control={control}
               render={({ field }) => (
                 <TextField
@@ -181,25 +207,24 @@ const ShopRegistrationForm = () => {
                   label="Owner Full Name"
                   fullWidth
                   required
-                  error={!!errors.ownerFullName}
-                  helperText={errors.ownerFullName?.message}
+                  error={!!errors.ownerName}
+                  helperText={errors.ownerName?.message}
                 />
               )}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <Controller
-              name="ownerPhoneNumber"
+              name="ownerPhone"
               control={control}
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Owner Phone Number (+234xxxxxxxxxx)"
+                  label="Owner Phone"
                   fullWidth
                   required
-                  error={!!errors.ownerPhoneNumber}
-                  helperText={errors.ownerPhoneNumber?.message}
-                  placeholder="+2348012345678"
+                  error={!!errors.ownerPhone}
+                  helperText={errors.ownerPhone?.message}
                 />
               )}
             />

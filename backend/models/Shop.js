@@ -58,14 +58,14 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     businessType: {
-      type: DataTypes.ENUM("Retail", "Restaurant", "Services", "Pharmacy", "Electronics", "Clothing", "Grocery", "Supermarket", "Bank", "Other"),
+      type: DataTypes.ENUM("retail", "restaurant", "services", "pharmacy", "electronics", "clothing", "grocery", "supermarket", "bank", "other"),
       allowNull: false,
       validate: {
         notEmpty: { msg: 'Business type cannot be empty.' },
       },
     },
     shopSizeCategory: {
-      type: DataTypes.ENUM("Small", "Medium", "Large"),
+      type: DataTypes.ENUM("small", "medium", "large"),
       allowNull: false,
       validate: {
         notEmpty: { msg: 'Shop size category cannot be empty.' },

@@ -81,7 +81,10 @@ const calculatePenalty = (amountDue, paymentDate) => {
 
 const schema = yup.object().shape({
   shop: yup.object().nullable().required('Shop is required'),
-  revenueType: yup.object().nullable().required('Revenue type is required'),
+  revenueType: yup.object().nullable().transform((value, originalValue) => {
+    // Allow empty string to be considered as null for validation
+    return originalValue === '' ? null : value;
+  }).required('Revenue type is required'),
   assessmentYear: yup.number().required('Assessment year is required'),
   amountPaid: yup.number().required('Amount paid is required').min(0, 'Amount paid cannot be negative'),
   paymentMethod: yup.string().required('Payment method is required'),
@@ -95,7 +98,7 @@ const PaymentForm = () => {
     resolver: yupResolver(schema),
     defaultValues: {
       shop: null,
-      revenueType: null,
+      revenueType: '', // Changed from null to empty string
       assessmentYear: dayjs().year(),
       amountPaid: 0,
       paymentMethod: '',
@@ -210,7 +213,7 @@ const PaymentForm = () => {
                     getOptionLabel={(option) => option.businessName ? `${option.businessName} (${option.ownerName} - ${option.id})` : ''}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     onInputChange={handleShopSearch}
-                    loading={shopSearchLoading.toString()}
+                    loading={!!shopSearchLoading}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -242,9 +245,10 @@ const PaymentForm = () => {
                     <Select
                       {...field}
                       label="Revenue Type"
+                      value={field.value || ''} // Added fallback for Select
                       loading={revenueTypeLoading.toString()}
                     >
-                      <MenuItem value={null} disabled><em>Select revenue type</em></MenuItem>
+                      <MenuItem value="" disabled><em>Select revenue type</em></MenuItem>
                       {revenueTypeLoading ? (
                         <MenuItem disabled>
                           <CircularProgress size={20} /> Loading...
@@ -272,6 +276,7 @@ const PaymentForm = () => {
                     <Select
                       {...field}
                       label="Assessment Year"
+                      value={field.value || ''} // Added fallback for Select
                     >
                       {assessmentYears.map((year) => (
                         <MenuItem key={year} value={year}>
@@ -336,12 +341,12 @@ const PaymentForm = () => {
                     <Select
                       {...field}
                       label="Payment Method"
+                      value={field.value || ''}
                     >
-                      <MenuItem value="Cash">Cash</MenuItem>
-                      <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
-                      <MenuItem value="POS">POS</MenuItem>
-                      <MenuItem value="Online">Online</MenuItem>
-                      <MenuItem value="Cheque">Cheque</MenuItem>
+                      <MenuItem value="">Select Payment Method</MenuItem>
+                      <MenuItem value="cash">Cash</MenuItem>
+                      <MenuItem value="pos">POS</MenuItem>
+                      <MenuItem value="transfer">Transfer</MenuItem>
                     </Select>
                     {errors.paymentMethod && <Typography color="error" variant="caption">{errors.paymentMethod.message}</Typography>}
                   </FormControl>
@@ -355,7 +360,7 @@ const PaymentForm = () => {
                 render={({ field }) => (
                   <DatePicker
                     label="Payment Date"
-                    value={field.value}
+                    value={field.value || null} // Changed to null for DatePicker
                     onChange={(newValue) => field.onChange(newValue)}
                     renderInput={(params) => (
                       <TextField

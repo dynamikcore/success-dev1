@@ -13,7 +13,7 @@ const validateShopInput = (req, res, next) => {
     }
 
     // Basic phone number validation for Nigerian format (starts with 070, 080, 081, 090, 091 and 11 digits)
-    const nigerianPhoneRegex = /^(070|080|081|090|091)\d{8}$/;
+    const nigerianPhoneRegex = /^(\+234|0)\d{10}$/;
     if (!nigerianPhoneRegex.test(ownerPhone)) {
         return res.status(400).json({ message: 'Invalid Nigerian phone number format.' });
     }
