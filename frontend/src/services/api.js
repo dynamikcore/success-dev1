@@ -39,9 +39,15 @@ export const createShop = async (shopData) => {
 };
 
 export const fetchShops = async (query = '', page = 1, limit = 10) => {
-  const params = new URLSearchParams({ page, limit });
-  if (query) params.append('search', query);
-  return apiRequest(`/shops?${params.toString()}`);
+  if (query && query.length >= 2) {
+    // Use search endpoint for autocomplete
+    const params = new URLSearchParams({ q: query });
+    return apiRequest(`/shops/search?${params.toString()}`);
+  } else {
+    // Use regular listing endpoint
+    const params = new URLSearchParams({ page, limit });
+    return apiRequest(`/shops?${params.toString()}`);
+  }
 };
 
 export const getShopById = async (shopId) => {

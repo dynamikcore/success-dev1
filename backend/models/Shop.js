@@ -115,8 +115,8 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   Shop.associate = (db) => {
-    Shop.hasMany(db.Payment, { foreignKey: 'shopId' });
-    Shop.hasMany(db.Permit, { foreignKey: 'shopId' });
+    Shop.hasMany(db.Payment, { foreignKey: 'shopId', as: 'Payments' });
+    Shop.hasMany(db.Permit, { foreignKey: 'shopId', as: 'Permits' });
   };
 
 

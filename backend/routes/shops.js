@@ -76,6 +76,35 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/shops/search - Search shops for autocomplete
+router.get('/search', async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || q.length < 2) {
+        return res.json({ shops: [] });
+    }
+
+    try {
+        const shops = await Shop.findAll({
+            where: {
+                [Op.or]: [
+                    { businessName: { [Op.like]: `%${q}%` } },
+                    { ownerName: { [Op.like]: `%${q}%` } },
+                    { shopId: { [Op.like]: `%${q}%` } }
+                ],
+                isActive: true
+            },
+            limit: 10,
+            order: [['businessName', 'ASC']]
+        });
+
+        res.json({ shops });
+    } catch (error) {
+        console.error('Error searching shops:', error);
+        res.status(500).json({ message: 'Error searching shops', error: error.message });
+    }
+});
+
 // POST /api/shops - Register new shop
 router.post('/', validateShopInput, async (req, res) => {
     try {

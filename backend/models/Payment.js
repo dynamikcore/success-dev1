@@ -31,12 +31,13 @@ module.exports = (sequelize, DataTypes) => {
     amountDue: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      defaultValue: 0.00,
       validate: {
         isDecimal: true,
         min: 0,
       },
     },
-    amountPaid: {
+    amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       validate: {
