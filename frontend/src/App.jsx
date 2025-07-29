@@ -113,12 +113,15 @@ function App() {
 }
 
 function AppContent() {
+  // Move ALL hooks to the top before any conditional logic
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [anchorEl, setAnchorEl] = useState(null);
   const { user, logout, loading } = useAuth();
+  const { isLoading } = useLoading();
 
+  // Now handle conditional returns AFTER all hooks are called
   if (loading) {
     return (
       <Box
@@ -227,8 +230,6 @@ function AppContent() {
       </Typography>
     </Box>
   );
-
-  const { isLoading } = useLoading();
 
   return (
     <ThemeProvider theme={theme}>
