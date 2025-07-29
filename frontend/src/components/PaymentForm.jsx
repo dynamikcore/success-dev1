@@ -21,6 +21,7 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
+  Alert,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -187,11 +188,45 @@ const PaymentForm = () => {
 
       const result = await createPayment(paymentData);
       setPaymentSuccess(result);
+
+      // Generate PDF receipt if required
+      if (paymentSummary.receiptRequired && result.payment) {
+        await generatePDFReceipt(result.payment, paymentSummary.shop);
+      }
     } catch (error) {
       setPaymentError(error.message || 'An unexpected error occurred.');
     } finally {
       setPaymentProcessing(false);
       setConfirmDialogOpen(false);
+    }
+  };
+
+  const generatePDFReceipt = async (paymentData, shopData) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/payments/generate-receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paymentData,
+          shopData,
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${paymentData.receiptNumber || 'payment'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Error generating PDF receipt:', error);
     }
   };
 

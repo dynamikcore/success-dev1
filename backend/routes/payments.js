@@ -3,6 +3,7 @@ const router = express.Router();
 const { Op } = require('sequelize');
 const db = require('../models');
 const { Payment, Shop, RevenueType } = db;
+const { generateShopPaymentReceipt } = require('../utils/receiptGenerator');
 
 // GET /api/payments - List all payments with pagination and filters
 router.get('/', async (req, res) => {
@@ -75,6 +76,25 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error creating payment:', error);
     res.status(500).json({ message: 'Error creating payment', error: error.message });
+  }
+});
+
+// POST /api/payments/generate-receipt - Generate PDF receipt
+router.post('/generate-receipt', async (req, res) => {
+  try {
+    const { paymentData, shopData } = req.body;
+
+    const pdfBase64 = await generateShopPaymentReceipt(paymentData, shopData);
+
+    // Convert base64 to buffer
+    const pdfBuffer = Buffer.from(pdfBase64.split(',')[1], 'base64');
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=receipt-${paymentData.receiptNumber || 'payment'}.pdf`);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating PDF receipt:', error);
+    res.status(500).json({ message: 'Error generating PDF receipt', error: error.message });
   }
 });
 

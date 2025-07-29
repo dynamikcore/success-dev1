@@ -77,6 +77,92 @@ router.post('/', async (req, res) => {
   }
 });
 
+// POST /api/permits/renew - Renew permits
+router.post('/renew', async (req, res) => {
+  try {
+    const { permitIds } = req.body;
+
+    if (!permitIds || !Array.isArray(permitIds)) {
+      return res.status(400).json({ message: 'Permit IDs array is required' });
+    }
+
+    const renewedPermits = [];
+
+    for (const permitId of permitIds) {
+      const permit = await Permit.findByPk(permitId);
+
+      if (permit) {
+        const newExpiryDate = new Date();
+        newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+
+        await permit.update({
+          expiryDate: newExpiryDate,
+          permitStatus: 'Active',
+          renewalDate: new Date(),
+        });
+
+        renewedPermits.push(permit);
+      }
+    }
+
+    res.json({
+      success: true,
+      renewedPermits: renewedPermits.map(p => ({
+        permitId: p.permitId,
+        newExpiryDate: p.expiryDate,
+        status: p.permitStatus
+      }))
+    });
+  } catch (error) {
+    console.error('Error renewing permits:', error);
+    res.status(500).json({ message: 'Error renewing permits', error: error.message });
+  }
+});
+
+// POST /api/permits/send-reminder - Send renewal reminders
+router.post('/send-reminder', async (req, res) => {
+  try {
+    const { permitIds } = req.body;
+    const NotificationService = require('../utils/notificationService');
+
+    if (!permitIds || !Array.isArray(permitIds)) {
+      return res.status(400).json({ message: 'Permit IDs array is required' });
+    }
+
+    const permits = await Permit.findAll({
+      where: {
+        permitId: permitIds
+      },
+      include: [
+        { model: Shop, attributes: ['businessName', 'ownerName', 'ownerPhone'] }
+      ]
+    });
+
+    const sentReminders = [];
+
+    for (const permit of permits) {
+      const notification = {
+        type: 'permit_renewal_reminder',
+        permitId: permit.permitId,
+        shopName: permit.Shop?.businessName,
+        ownerPhone: permit.Shop?.ownerPhone,
+        message: `Reminder: Your ${permit.permitType} permit needs renewal. Please visit the LGA office.`
+      };
+
+      await NotificationService.sendNotification(notification);
+      sentReminders.push(notification);
+    }
+
+    res.json({
+      success: true,
+      sentReminders
+    });
+  } catch (error) {
+    console.error('Error sending reminders:', error);
+    res.status(500).json({ message: 'Error sending reminders', error: error.message });
+  }
+});
+
 // GET /api/permits/expiring - Get permits expiring within specified days
 router.get('/expiring', async (req, res) => {
   const { days = 30 } = req.query;
