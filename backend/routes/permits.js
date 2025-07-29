@@ -123,7 +123,7 @@ router.post('/renew', async (req, res) => {
 router.post('/send-reminder', async (req, res) => {
   try {
     const { permitIds } = req.body;
-    const NotificationService = require('../utils/notificationService');
+    const NotificationService = require('../utils/notificationservice');
 
     if (!permitIds || !Array.isArray(permitIds)) {
       return res.status(400).json({ message: 'Permit IDs array is required' });
