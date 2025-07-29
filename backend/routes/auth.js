@@ -8,14 +8,14 @@ const defaultUsers = [
   {
     id: 1,
     username: 'admin',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password: 'admin123'
+    password: '$2a$10$.OLDi5nzx1X.nTGuotENhuxzdRJmiC1YlG0mLgcnKwcS4WUEzXzMO', // password: 'admin123'
     role: 'admin',
     name: 'System Administrator'
   },
   {
     id: 2,
     username: 'officer',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password: 'admin123'
+    password: '$2a$10$.OLDi5nzx1X.nTGuotENhuxzdRJmiC1YlG0mLgcnKwcS4WUEzXzMO', // password: 'admin123'
     role: 'officer',
     name: 'Revenue Officer'
   }
