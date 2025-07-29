@@ -27,11 +27,28 @@ fs.readdirSync(__dirname)
     db[model.name] = model;
   });
 
+// Set up associations
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
 });
+
+// Ensure all associations are properly set up
+if (db.Payment && db.Shop) {
+  db.Payment.belongsTo(db.Shop, { foreignKey: 'shopId' });
+  db.Shop.hasMany(db.Payment, { foreignKey: 'shopId' });
+}
+
+if (db.Payment && db.RevenueType) {
+  db.Payment.belongsTo(db.RevenueType, { foreignKey: 'revenueTypeId' });
+  db.RevenueType.hasMany(db.Payment, { foreignKey: 'revenueTypeId' });
+}
+
+if (db.Permit && db.Shop) {
+  db.Permit.belongsTo(db.Shop, { foreignKey: 'shopId' });
+  db.Shop.hasMany(db.Permit, { foreignKey: 'shopId' });
+}
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

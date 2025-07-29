@@ -50,8 +50,8 @@ const schema = yup.object().shape({
   description: yup.string().optional(),
 });
 
-const PaymentForm = () => {
-  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+const PaymentForm = ({ onPaymentSuccess }) => {
+  const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       shop: null,
@@ -175,8 +175,53 @@ const PaymentForm = () => {
     setPaymentSummary(null);
   };
 
+  const handleFinalizePayment = async () => {
+    if (!paymentSummary) return;
+
+    setPaymentProcessing(true);
+    setPaymentError('');
+
+    try {
+      const paymentData = {
+        shopId: paymentSummary.shop.shopId,
+        revenueTypeId: paymentSummary.revenueType.id,
+        amount: parseFloat(paymentSummary.amountPaid),
+        paymentMethod: paymentSummary.paymentMethod,
+        paymentDate: paymentSummary.paymentDate.format('YYYY-MM-DD'),
+        collectedBy: 'System Administrator', // TODO: Get from auth context
+        notes: paymentSummary.description || '',
+      };
+
+      const result = await createPayment(paymentData);
+
+      if (result.success) {
+        setPaymentSuccess({
+          receiptId: result.payment.receiptNumber,
+          amount: result.payment.amount
+        });
+
+        // Generate and download PDF receipt
+        await generatePDFReceipt(result.payment, paymentSummary.shop);
+
+        // Close dialog and reset form
+        handleCloseConfirmDialog();
+        reset();
+        setShops([]);
+
+        if (onPaymentSuccess) {
+          onPaymentSuccess(result.payment);
+        }
+      }
+    } catch (error) {
+      console.error('Payment finalization error:', error);
+      setPaymentError(error.message || 'Failed to process payment. Please try again.');
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
   const onSubmit = async (data) => {
-    setLoading(true);
+    setPaymentProcessing(true);
     setPaymentError('');
     setPaymentSuccess(null);
 
@@ -214,7 +259,7 @@ const PaymentForm = () => {
       console.error('Payment submission error:', error);
       setPaymentError(error.message || 'Failed to process payment. Please try again.');
     } finally {
-      setLoading(false);
+      setPaymentProcessing(false);
     }
   };
 
