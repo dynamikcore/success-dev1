@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { Op, Sequelize } = require('sequelize');
-const { Shop, Payment, RevenueType, Permit } = require('../server');
+const db = require('../models');
+const { Shop, Payment, RevenueType, Permit } = db;
 
 // GET /api/dashboard/stats - Dashboard statistics
 router.get('/stats', async (req, res) => {
@@ -23,7 +24,7 @@ router.get('/stats', async (req, res) => {
                 },
             },
         });
-        const todayRevenue = todayPayments.reduce((sum, payment) => sum + payment.amount, 0);
+        const todayRevenue = todayPayments.reduce((sum, payment) => sum + (payment.amountPaid || payment.amount || 0), 0);
 
         // Get pending renewals (permits expiring in next 30 days)
         const thirtyDaysFromNow = new Date();
@@ -37,8 +38,12 @@ router.get('/stats', async (req, res) => {
             },
         });
 
-        // Get compliance rate
-        const compliantShops = await Shop.count({ where: { complianceStatus: 'compliant' } });
+        // Get compliance rate (assuming shops have a complianceStatus field)
+        const compliantShops = await Shop.count({
+            where: {
+                complianceStatus: 'compliant'
+            }
+        });
         const complianceRate = totalShops > 0 ? Math.round((compliantShops / totalShops) * 100) : 0;
 
         res.json({
