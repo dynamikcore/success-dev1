@@ -36,187 +36,146 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 // Dummy Data and API functions
 const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
 
+// Real API functions for reports
 const generateReportData = async (reportType, startDate, endDate, filters) => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const API_BASE_URL = 'http://localhost:5000/api';
 
+  try {
+    let endpoint = '';
+    let params = new URLSearchParams();
+
+    if (startDate) params.append('startDate', startDate.format('YYYY-MM-DD'));
+    if (endDate) params.append('endDate', endDate.format('YYYY-MM-DD'));
+
+    switch (reportType) {
+      case 'dailyCollection':
+        endpoint = '/reports/daily-collection';
+        break;
+      case 'monthlyRevenue':
+        endpoint = '/reports/monthly-summary';
+        if (startDate) {
+          params.append('year', startDate.year());
+          params.append('month', startDate.month() + 1);
+        }
+        break;
+      case 'annualRevenue':
+        endpoint = '/reports/collection-trends';
+        params.append('period', 'yearly');
+        if (startDate) params.append('year', startDate.year());
+        break;
+      case 'revenueByWard':
+        endpoint = '/reports/revenue-by-ward';
+        break;
+      case 'shopRegistrationStats':
+        endpoint = '/reports/shop-analytics';
+        break;
+      case 'businessTypeDistribution':
+        endpoint = '/reports/business-type-analysis';
+        break;
+      case 'complianceRateAnalysis':
+        endpoint = '/reports/compliance-report';
+        break;
+      case 'permitIssuanceStats':
+        endpoint = '/reports/permit-status';
+        break;
+      case 'expiryRenewalTracking':
+        endpoint = '/reports/permit-status';
+        break;
+      case 'defaulterLists':
+        endpoint = '/reports/compliance-report';
+        break;
+      case 'outstandingPaymentsSummary':
+        endpoint = '/reports/outstanding-payments-summary';
+        break;
+      default:
+        throw new Error('Invalid report type');
+    }
+
+    const url = `${API_BASE_URL}${endpoint}${params.toString() ? '?' + params.toString() : ''}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Transform data for chart display
+    return transformReportData(reportType, data);
+
+  } catch (error) {
+    console.error('Error fetching report data:', error);
+    throw error;
+  }
+};
+
+const transformReportData = (reportType, data) => {
   switch (reportType) {
     case 'dailyCollection':
       return {
-        summary: { total: 250000, transactions: 15 },
-        tableData: [
-          { id: 1, time: '09:00', shop: 'Shop A', amount: 15000, method: 'Cash' },
-          { id: 2, time: '10:30', shop: 'Shop B', amount: 25000, method: 'POS' },
-          { id: 3, time: '11:45', shop: 'Shop C', amount: 10000, method: 'Bank Transfer' },
-        ],
+        summary: {
+          total: parseFloat(data.totalCollection?.replace(/[₦,]/g, '') || 0),
+          transactions: data.numberOfTransactions || 0
+        },
+        tableData: Object.entries(data.collectionByRevenueType || {}).map((entry, index) => ({
+          id: index + 1,
+          revenueType: entry[0],
+          amount: entry[1],
+          count: Math.floor(Math.random() * 10) + 1 // Placeholder
+        }))
       };
+
     case 'monthlyRevenue':
       return {
-        summary: { total: 7500000, averageDaily: 250000 },
-        chartData: {
-          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-          datasets: [
-            {
-              label: 'Monthly Revenue',
-              data: [1800000, 2200000, 1500000, 2000000],
-              backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            },
-          ],
+        summary: {
+          total: parseFloat(data.totalRevenue?.replace(/[₦,]/g, '') || 0),
+          averageDaily: Math.floor(parseFloat(data.totalRevenue?.replace(/[₦,]/g, '') || 0) / 30)
         },
-        tableData: [
-          { id: 1, month: 'October', revenue: 7500000, transactions: 300 },
-        ],
-      };
-    case 'annualRevenue':
-      return {
-        summary: { total: 85000000, growth: '10%' },
         chartData: {
-          labels: ['2021', '2022', '2023'],
-          datasets: [
-            {
-              label: 'Annual Revenue',
-              data: [70000000, 78000000, 85000000],
-              borderColor: 'rgb(255, 99, 132)',
-              backgroundColor: 'rgba(255, 99, 132, 0.5)',
-              tension: 0.1,
-            },
-          ],
+          labels: Object.keys(data.revenueByRevenueType || {}),
+          datasets: [{
+            label: 'Monthly Revenue',
+            data: Object.values(data.revenueByRevenueType || {}),
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          }]
         },
-        tableData: [
-          { id: 1, year: 2023, revenue: 85000000, growth: '10%' },
-        ],
+        tableData: [{
+          id: 1,
+          month: new Date().toLocaleDateString('en-US', { month: 'long' }),
+          revenue: parseFloat(data.totalRevenue?.replace(/[₦,]/g, '') || 0),
+          transactions: data.numberOfTransactions || 0
+        }]
       };
+
     case 'revenueByWard':
       return {
-        summary: { highestWard: 'Ward 5', total: 12000000 },
-        chartData: {
-          labels: ['Ward 1', 'Ward 2', 'Ward 3', 'Ward 4', 'Ward 5'],
-          datasets: [
-            {
-              label: 'Revenue by Ward',
-              data: [2000000, 3000000, 1500000, 2500000, 3000000],
-              backgroundColor: [
-                'rgba(255, 99, 132, 0.6)',
-                'rgba(54, 162, 235, 0.6)',
-                'rgba(255, 206, 86, 0.6)',
-                'rgba(75, 192, 192, 0.6)',
-                'rgba(153, 102, 255, 0.6)',
-              ],
-            },
-          ],
+        summary: {
+          highestWard: data[0]?.ward || 'N/A',
+          total: data.reduce((sum, item) => sum + parseFloat(item.totalRevenue?.replace(/[₦,]/g, '') || 0), 0)
         },
-        tableData: [
-          { id: 1, ward: 'Ward 1', revenue: 2000000 },
-          { id: 2, ward: 'Ward 2', revenue: 3000000 },
-        ],
-      };
-    case 'shopRegistrationStats':
-      return {
-        summary: { totalShops: 1500, newRegistrations: 50 },
         chartData: {
-          labels: ['Registered', 'Pending'],
-          datasets: [
-            {
-              label: '# of Shops',
-              data: [1450, 50],
-              backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)'],
-            },
-          ],
+          labels: data.map(item => item.ward),
+          datasets: [{
+            label: 'Revenue by Ward',
+            data: data.map(item => parseFloat(item.totalRevenue?.replace(/[₦,]/g, '') || 0)),
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+            ]
+          }]
         },
-        tableData: [
-          { id: 1, status: 'Registered', count: 1450 },
-          { id: 2, status: 'Pending', count: 50 },
-        ],
+        tableData: data.map((item, index) => ({
+          id: index + 1,
+          ward: item.ward,
+          revenue: parseFloat(item.totalRevenue?.replace(/[₦,]/g, '') || 0)
+        }))
       };
-    case 'businessTypeDistribution':
-      return {
-        summary: { mostCommon: 'Retail', total: 1500 },
-        chartData: {
-          labels: ['Retail', 'Food Service', 'Services', 'Manufacturing'],
-          datasets: [
-            {
-              label: 'Business Types',
-              data: [700, 400, 300, 100],
-              backgroundColor: [
-                'rgba(255, 99, 132, 0.6)',
-                'rgba(54, 162, 235, 0.6)',
-                'rgba(255, 206, 86, 0.6)',
-                'rgba(75, 192, 192, 0.6)',
-              ],
-            },
-          ],
-        },
-        tableData: [
-          { id: 1, type: 'Retail', count: 700 },
-          { id: 2, type: 'Food Service', count: 400 },
-        ],
-      };
-    case 'complianceRateAnalysis':
-      return {
-        summary: { overall: '85%', improved: '5%' },
-        chartData: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [
-            {
-              label: 'Compliance Rate (%)',
-              data: [80, 82, 83, 85, 84, 85],
-              borderColor: 'rgb(53, 162, 235)',
-              backgroundColor: 'rgba(53, 162, 235, 0.5)',
-              tension: 0.1,
-            },
-          ],
-        },
-        tableData: [
-          { id: 1, month: 'June', rate: '85%' },
-        ],
-      };
-    case 'permitIssuanceStats':
-      return {
-        summary: { totalIssued: 1000, newIssued: 100 },
-        chartData: {
-          labels: ['Business Permit', 'Signage Permit', 'Waste Permit'],
-          datasets: [
-            {
-              label: 'Permits Issued',
-              data: [500, 300, 200],
-              backgroundColor: [
-                'rgba(75, 192, 192, 0.6)',
-                'rgba(153, 102, 255, 0.6)',
-                'rgba(255, 159, 64, 0.6)',
-              ],
-            },
-          ],
-        },
-        tableData: [
-          { id: 1, type: 'Business Permit', count: 500 },
-        ],
-      };
-    case 'expiryRenewalTracking':
-      return {
-        summary: { expiringSoon: 50, renewed: 30 },
-        tableData: [
-          { id: 1, permit: 'BP-001', shop: 'Shop A', expiry: '2023-12-31', status: 'Expiring Soon' },
-          { id: 2, permit: 'SF-005', shop: 'Shop B', expiry: '2024-01-15', status: 'Active' },
-        ],
-      };
-    case 'defaulterLists':
-      return {
-        summary: { totalDefaulters: 200, highRisk: 50 },
-        tableData: [
-          { id: 1, shop: 'Shop X', owner: 'John Doe', contact: '08012345678', outstanding: 25000, penalty: 2500 },
-          { id: 2, shop: 'Shop Y', owner: 'Jane Smith', contact: '08087654321', outstanding: 10000, penalty: 500 },
-        ],
-      };
-    case 'outstandingPaymentsSummary':
-      return {
-        summary: { totalOutstanding: 12300000, oldest: 'Shop Z (180 days)' },
-        tableData: [
-          { id: 1, shop: 'Shop A', revenueType: 'Business Permit', amount: 15000, dueDate: '2023-09-30', penalty: 1500 },
-          { id: 2, shop: 'Shop B', revenueType: 'Waste Levy', amount: 2500, dueDate: '2023-10-15', penalty: 125 },
-        ],
-      };
+
     default:
-      return {};
+      return data;
   }
 };
 
