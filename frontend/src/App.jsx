@@ -1,8 +1,9 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingProvider } from './contexts/LoadingContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useLoading } from './contexts/LoadingContext';
 import { 
   ThemeProvider, 
@@ -43,7 +44,7 @@ import PaymentProcessing from './pages/PaymentProcessing';
 import Reports from './pages/Reports';
 import PermitManagement from './pages/PermitManagement';
 import ShopManagement from './pages/ShopManagement';
-
+import Login from './components/login';
 
 const Payments = () => <PaymentProcessing />;
 const PermitsComponent = () => <PermitManagement />;
@@ -52,7 +53,6 @@ const ReportsComponent = () => <Reports />;
 
 
 const Settings = () => <Typography variant="h4" sx={{ p: 3 }}>Settings Content</Typography>;
-const Login = () => <Typography variant="h4" sx={{ p: 3 }}>Login Page</Typography>;
 
 // Material-UI Theme with Nigerian Government Colors (Green/White)
 const theme = createTheme({
@@ -118,6 +118,26 @@ function AppContent() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [anchorEl, setAnchorEl] = useState(null);
+  const { user, logout, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -140,7 +160,6 @@ function AppContent() {
     { text: 'Permit Management', icon: <AssignmentIcon />, path: '/permits' },
     { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-    { text: 'Login', icon: <LoginIcon />, path: '/login' },
   ];
 
   // Mobile Sidebar
@@ -148,6 +167,9 @@ function AppContent() {
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2, color: 'primary.main' }}>
         UVWIE LGA
+      </Typography>
+      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+        Welcome, {user.name}
       </Typography>
       <Divider />
       <List>
@@ -159,6 +181,12 @@ function AppContent() {
             </ListItemButton>
           </ListItem>
         ))}
+        <ListItem disablePadding>
+          <ListItemButton onClick={logout}>
+            <ListItemIcon><LoginIcon /></ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItemButton>
+        </ListItem>
       </List>
     </Box>
   );
@@ -186,18 +214,18 @@ function AppContent() {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        {navItems.slice(5).map((item) => (
-          <MenuItem
-            key={item.text}
-            onClick={handleMenuClose}
-            component={Link}
-            to={item.path}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </MenuItem>
-        ))}
+        <MenuItem onClick={handleMenuClose} component={Link} to="/settings">
+          <ListItemIcon><SettingsIcon /></ListItemIcon>
+          <ListItemText primary="Settings" />
+        </MenuItem>
+        <MenuItem onClick={() => { handleMenuClose(); logout(); }}>
+          <ListItemIcon><LoginIcon /></ListItemIcon>
+          <ListItemText primary="Logout" />
+        </MenuItem>
       </Menu>
+      <Typography variant="body2" sx={{ ml: 2 }}>
+        Welcome, {user.name}
+      </Typography>
     </Box>
   );
 
@@ -291,7 +319,6 @@ function AppContent() {
             <Route path="/permits" element={<PermitsComponent />} />
             <Route path="/reports" element={<ReportsComponent />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/login" element={<Login />} />
           </Routes>
         </Box>
 

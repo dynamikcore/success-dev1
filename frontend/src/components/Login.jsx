@@ -85,6 +85,18 @@ const Login = () => {
             {loading ? <CircularProgress size={24} /> : 'Login'}
           </Button>
         </Box>
+
+        <Box sx={{ mt: 2, p: 2, backgroundColor: '#f9f9f9', borderRadius: 1 }}>
+          <Typography variant="body2" color="text.secondary" align="center">
+            <strong>Demo Credentials:</strong>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center">
+            Username: admin | Password: admin123
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center">
+            Username: officer | Password: admin123
+          </Typography>
+        </Box>
       </Paper>
     </Box>
   );

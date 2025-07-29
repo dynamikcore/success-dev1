@@ -37,11 +37,19 @@ app.use((err, req, res, next) => {
 });
 
 // Database sync and server start
-sequelize.sync({ force: true }) // Change to true temporarily to recreate tables
+sequelize.sync({ force: false }) // Changed from true to false to preserve existing data
   .then(() => {
     console.log('Database synced successfully.');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log('Available endpoints:');
+      console.log('- POST /api/auth/login - User authentication');
+      console.log('- GET /api/auth/verify - Token verification');
+      console.log('- GET /api/shops - Shop management');
+      console.log('- POST /api/payments - Payment processing');
+      console.log('- GET /api/permits - Permit management');
+      console.log('- GET /api/reports - Report generation');
+      console.log('- GET /api/dashboard - Dashboard data');
     });
   })
   .catch(err => {
