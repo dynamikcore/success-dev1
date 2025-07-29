@@ -105,7 +105,12 @@ const PaymentForm = () => {
           types = response.revenueTypes;
         }
 
+        console.log('Processed revenue types:', types);
         setRevenueTypes(types);
+
+        if (types.length === 0) {
+          console.warn('No revenue types found');
+        }
       } catch (error) {
         console.error('Failed to fetch revenue types:', error);
         setRevenueTypes([]);
@@ -247,9 +252,16 @@ const PaymentForm = () => {
                   <Autocomplete
                     {...field}
                     options={shops}
-                    getOptionLabel={(option) => option.businessName ? `${option.businessName} (${option.ownerName} - ${option.shopId})` : ''}
-                    isOptionEqualToValue={(option, value) => option.shopId === value.shopId}
+                    getOptionLabel={(option) => option && option.businessName ? `${option.businessName} (${option.ownerName} - ${option.shopId})` : ''}
+                    isOptionEqualToValue={(option, value) => {
+                      if (!option || !value) return option === value;
+                      return option.shopId === value.shopId;
+                    }}
                     onInputChange={handleShopSearch}
+                    onChange={(event, newValue) => {
+                      field.onChange(newValue);
+                    }}
+                    value={field.value || null}
                     loading={!!shopSearchLoading}
                     renderInput={(params) => (
                       <TextField
@@ -283,11 +295,14 @@ const PaymentForm = () => {
                       {...field}
                       label="Revenue Type"
                       value={field.value || ''}
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                      }}
                     >
-                      <MenuItem value="" disabled><em>Select revenue type</em></MenuItem>
+                      <MenuItem value=""><em>Select revenue type</em></MenuItem>
                       {revenueTypeLoading ? (
                         <MenuItem disabled>
-                          <CircularProgress size={20} /> Loading...
+                          <CircularProgress size={20} sx={{ mr: 1 }} /> Loading...
                         </MenuItem>
                       ) : (
                         Array.isArray(revenueTypes) && revenueTypes.length > 0 ? (
@@ -301,7 +316,11 @@ const PaymentForm = () => {
                         )
                       )}
                     </Select>
-                    {errors.revenueType && <Typography color="error" variant="caption">{errors.revenueType.message}</Typography>}
+                    {errors.revenueType && (
+                      <Typography color="error" variant="caption" sx={{ mt: 0.5, ml: 1.5 }}>
+                        {errors.revenueType.message}
+                      </Typography>
+                    )}
                   </FormControl>
                 )}
               />
@@ -446,6 +465,24 @@ const PaymentForm = () => {
                 {paymentProcessing ? <CircularProgress size={24} /> : 'Confirm Payment'}
               </Button>
             </Grid>
+
+            {/* Add error alerts */}
+            {revenueTypes.length === 0 && !revenueTypeLoading && (
+              <Grid item xs={12}>
+                <Alert severity="warning">
+                  No revenue types available. Please contact administrator.
+                </Alert>
+              </Grid>
+            )}
+
+            {paymentError && (
+              <Grid item xs={12}>
+                <Alert severity="error">
+                  {paymentError}
+                </Alert>
+              </Grid>
+            )}
+
           </Grid>
         </Box>
 
@@ -484,14 +521,9 @@ const PaymentForm = () => {
 
         {/* Payment Status Feedback */}
         {paymentSuccess && (
-          <Typography color="success" sx={{ mt: 2 }}>
+          <Alert severity="success" sx={{ mt: 2 }}>
             Payment successful! Receipt ID: {paymentSuccess.receiptId}
-          </Typography>
-        )}
-        {paymentError && (
-          <Typography color="error" sx={{ mt: 2 }}>
-            Error: {paymentError}
-          </Typography>
+          </Alert>
         )}
       </Box>
     </LocalizationProvider>
