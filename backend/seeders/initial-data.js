@@ -3,6 +3,7 @@ const { Shop, RevenueType, Payment, Permit } = db;
 
 const seedData = async () => {
   try {
+    console.log('🌱 Starting database seeding...');
     // Create revenue types
     const revenueTypes = await RevenueType.bulkCreate([
       {
@@ -33,12 +34,16 @@ const seedData = async () => {
         calculationMethod: 'Fixed',
         frequency: 'Annual'
       }
-    ], { ignoreDuplicates: true });
+    ], {
+    });
 
-    console.log('Seed data created successfully');
+    console.log(`✅ Created ${revenueTypes.length} revenue types`);
+    console.log('🌱 Seed data created successfully');
   } catch (error) {
-    console.error('Error creating seed data:', error);
+    console.error('❌ Error creating seed data:', error);
+    throw error;
   }
 };
 
 module.exports = seedData;
+

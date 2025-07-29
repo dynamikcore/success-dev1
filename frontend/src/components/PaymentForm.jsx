@@ -184,11 +184,16 @@ const PaymentForm = () => {
         shopId: paymentSummary.shop.shopId,
         revenueTypeId: paymentSummary.revenueType.id,
         assessmentYear: paymentSummary.assessmentYear,
-        amountPaid: paymentSummary.amountPaid,
+        amount: paymentSummary.amountPaid, // Use amountPaid as the actual amount
+        amountDue: paymentSummary.totalAmountDue, // Use totalAmountDue as amountDue
         paymentMethod: paymentSummary.paymentMethod,
         paymentDate: paymentSummary.paymentDate.format('YYYY-MM-DD'),
-        description: paymentSummary.description,
-        receiptRequired: paymentSummary.receiptRequired,
+        paymentStatus: 'Completed', // Default status
+        collectedBy: 'Admin User', // Placeholder, ideally from user context
+        notes: paymentSummary.description, // Map description to notes
+        // assessmentYear and receiptRequired are not part of the Payment model
+        // and will be handled separately if needed for other purposes.
+
       };
 
       const result = await createPayment(paymentData);

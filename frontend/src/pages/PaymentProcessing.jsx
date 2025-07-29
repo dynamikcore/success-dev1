@@ -70,13 +70,13 @@ const PaymentProcessing = () => {
 
       const todayPayments = paymentsData.filter(p => p.paymentDate === today);
       const thisMonthPayments = paymentsData.filter(p => p.paymentDate.startsWith(thisMonth));
-      const completedPayments = paymentsData.filter(p => p.status === 'Completed');
-      const pendingPayments = paymentsData.filter(p => p.status === 'Pending');
+      const completedPayments = paymentsData.filter(p => p.paymentStatus === 'Completed');
+      const pendingPayments = paymentsData.filter(p => p.paymentStatus === 'Pending');
 
       setStats({
-        todayCollection: todayPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
-        thisMonthTotal: thisMonthPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
-        outstandingAmount: pendingPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid || 0), 0),
+        todayCollection: todayPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
+        thisMonthTotal: thisMonthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
+        outstandingAmount: pendingPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
         numTransactions: completedPayments.length,
       });
 
@@ -84,7 +84,7 @@ const PaymentProcessing = () => {
       setRecentPayments(paymentsData.slice(0, 5));
 
       // Set outstanding payments (pending/failed)
-      setOutstandingPayments(paymentsData.filter(p => p.status === 'Pending' || p.status === 'Failed'));
+      setOutstandingPayments(paymentsData.filter(p => p.paymentStatus === 'Pending' || p.paymentStatus === 'Failed'));
 
     } catch (error) {
       console.error('Failed to fetch payments:', error);
@@ -121,9 +121,9 @@ const PaymentProcessing = () => {
   };
 
   const filteredPaymentHistory = payments.filter(payment =>
-    (payment.shopName && payment.shopName.toLowerCase().includes(historySearchQuery.toLowerCase())) ||
+    (payment.Shop && payment.Shop.businessName && payment.Shop.businessName.toLowerCase().includes(historySearchQuery.toLowerCase())) ||
     (payment.receiptNo && payment.receiptNo.toLowerCase().includes(historySearchQuery.toLowerCase())) ||
-    (payment.revenueType && payment.revenueType.toLowerCase().includes(historySearchQuery.toLowerCase()))
+    (payment.RevenueType && payment.RevenueType.typeName && payment.RevenueType.typeName.toLowerCase().includes(historySearchQuery.toLowerCase()))
   );
 
   const handleAdvancedFilters = () => {
@@ -135,7 +135,7 @@ const PaymentProcessing = () => {
     const csvContent = [
       headers.join(','),
       ...filteredPaymentHistory.map(row =>
-        `"${row.receiptNo || ''}","${row.paymentDate || ''}","${row.shopName || ''}","${row.revenueType || ''}","${row.amountPaid || ''}","${row.paymentMethod || ''}","${row.status || ''}"`
+        `"${row.receiptNo || ''}","${row.paymentDate || ''}","${row.Shop ? row.Shop.businessName : ''}","${row.RevenueType ? row.RevenueType.typeName : ''}","${row.amount || ''}","${row.paymentMethod || ''}","${row.paymentStatus || ''}"`
       )
     ].join('\n');
 
@@ -278,12 +278,12 @@ const PaymentProcessing = () => {
               {recentPayments.map((payment) => (
                 <TableRow key={payment.paymentId || payment.receiptNo}>
                   <TableCell>{payment.receiptNo || payment.paymentId}</TableCell>
-                  <TableCell>{payment.shopName || 'N/A'}</TableCell>
-                  <TableCell align="right">{formatCurrency(parseFloat(payment.amountPaid || 0))}</TableCell>
+                  <TableCell>{payment.Shop ? payment.Shop.businessName : 'N/A'}</TableCell>
+                  <TableCell align="right">{formatCurrency(parseFloat(payment.amount || 0))}</TableCell>
                   <TableCell>
                     <Chip
-                      label={payment.status || 'Unknown'}
-                      color={payment.status === 'Completed' ? 'success' : payment.status === 'Pending' ? 'warning' : 'error'}
+                      label={payment.paymentStatus || 'Unknown'}
+                      color={payment.paymentStatus === 'Completed' ? 'success' : payment.paymentStatus === 'Pending' ? 'warning' : 'error'}
                       size="small"
                     />
                   </TableCell>
@@ -381,14 +381,14 @@ const PaymentProcessing = () => {
                   >
                     <TableCell component="th" scope="row">{row.receiptNo || row.paymentId}</TableCell>
                     <TableCell>{row.paymentDate || 'N/A'}</TableCell>
-                    <TableCell>{row.shopName || 'N/A'}</TableCell>
-                    <TableCell>{row.revenueType || 'N/A'}</TableCell>
-                    <TableCell align="right">{formatCurrency(parseFloat(row.amountPaid || 0))}</TableCell>
+                    <TableCell>{row.Shop ? row.Shop.businessName : 'N/A'}</TableCell>
+                    <TableCell>{row.RevenueType ? row.RevenueType.typeName : 'N/A'}</TableCell>
+                    <TableCell align="right">{formatCurrency(parseFloat(row.amount || 0))}</TableCell>
                     <TableCell>{row.paymentMethod || 'N/A'}</TableCell>
                     <TableCell>
                       <Chip
-                        label={row.status || 'Unknown'}
-                        color={row.status === 'Completed' ? 'success' : row.status === 'Pending' ? 'warning' : 'error'}
+                        label={row.paymentStatus || 'Unknown'}
+                        color={row.paymentStatus === 'Completed' ? 'success' : row.paymentStatus === 'Pending' ? 'warning' : 'error'}
                         size="small"
                       />
                     </TableCell>
@@ -476,14 +476,14 @@ const PaymentProcessing = () => {
             <TableBody>
               {outstandingPayments.map((payment) => (
                 <TableRow key={payment.paymentId}>
-                  <TableCell>{payment.shopName || 'N/A'}</TableCell>
-                  <TableCell>{payment.revenueType || 'N/A'}</TableCell>
-                  <TableCell align="right">{formatCurrency(parseFloat(payment.amountPaid || 0))}</TableCell>
+                  <TableCell>{payment.Shop ? payment.Shop.businessName : 'N/A'}</TableCell>
+                  <TableCell>{payment.RevenueType ? payment.RevenueType.typeName : 'N/A'}</TableCell>
+                  <TableCell align="right">{formatCurrency(parseFloat(payment.amount || 0))}</TableCell>
                   <TableCell>{payment.paymentDate || 'N/A'}</TableCell>
                   <TableCell>
                     <Chip
-                      label={payment.status || 'Unknown'}
-                      color={payment.status === 'Pending' ? 'warning' : 'error'}
+                      label={payment.paymentStatus || 'Unknown'}
+                      color={payment.paymentStatus === 'Pending' ? 'warning' : 'error'}
                       size="small"
                     />
                   </TableCell>

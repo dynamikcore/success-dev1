@@ -1,9 +1,31 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./models');
+const seedData = require('./seeders/initial-data');
+const { RevenueType } = db;
+
+// Auto-seed database on startup
+const initializeDatabase = async () => {
+
+  try {
+    await sequelize.sync(); // This will create tables if they don't exist
+    console.log('Database synchronized.');
+
+    // Check if RevenueTypes already exist before seeding
+    const existingRevenueTypes = await RevenueType.count();
+    if (existingRevenueTypes === 0) {
+      await seedData();
+      console.log('Database seeded with initial data.');
+    } else {
+      console.log('Revenue types already exist, skipping seeding.');
+    }
+  } catch (error) {
+    console.error('Error initializing database:', error);
+  }
+};
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+
 
 // Middleware
 app.use(cors({ origin: 'http://localhost:5173' }));
@@ -36,24 +58,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
 
-// Database sync and server start
-sequelize.sync({ force: false }) // Changed from true to false to preserve existing data
-  .then(() => {
-    console.log('Database synced successfully.');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log('Available endpoints:');
-      console.log('- POST /api/auth/login - User authentication');
-      console.log('- GET /api/auth/verify - Token verification');
-      console.log('- GET /api/shops - Shop management');
-      console.log('- POST /api/payments - Payment processing');
-      console.log('- GET /api/permits - Permit management');
-      console.log('- GET /api/reports - Report generation');
-      console.log('- GET /api/dashboard - Dashboard data');
-    });
-  })
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-  });
+// Start server and initialize database
+app.listen(process.env.PORT || 5000, async () => {
+  console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
+  await initializeDatabase();
+});
 
 module.exports = app;
