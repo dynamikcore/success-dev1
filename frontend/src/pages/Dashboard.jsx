@@ -10,8 +10,11 @@ import {
   fetchRecentPayments,
   fetchExpiringPermits,
   fetchDashboardCharts,
-  formatNaira
+  formatNaira,
+  fetchShops
 } from '../services/api';
+
+const formatCurrency = (amount) => `₦${amount.toLocaleString()}`;
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement);
 const Dashboard = () => {
@@ -32,17 +35,19 @@ const Dashboard = () => {
     businessTypeChart: null,
     wardRevenueChart: null
   });
+  const [shops, setShops] = useState([]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        const [statsData, registrations, payments, permits, charts] = await Promise.all([
+        const [statsData, registrations, payments, permits, charts, allShops] = await Promise.all([
           fetchDashboardStats(),
           fetchRecentRegistrations(5),
           fetchRecentPayments(5),
           fetchExpiringPermits(30),
-          fetchDashboardCharts()
+          fetchDashboardCharts(),
+          fetchShops()
         ]);
 
         setStats(statsData);
@@ -50,6 +55,7 @@ const Dashboard = () => {
         setRecentPayments(payments);
         setExpiringPermits(permits);
         setChartData(charts);
+        setShops(allShops.shops || []);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setError('Failed to load dashboard data. Please try again.');
@@ -249,7 +255,7 @@ const Dashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Shop</TableCell>
-                    <TableCell>Amount</TableCell>
+                    <TableCell align="right">Amount</TableCell>
                     <TableCell>Date</TableCell>
                   </TableRow>
                 </TableHead>
@@ -257,8 +263,8 @@ const Dashboard = () => {
                   {recentPayments.length > 0 ? (
                     recentPayments.map((payment) => (
                       <TableRow key={payment.paymentId}>
-                        <TableCell>{payment.shopName}</TableCell>
-                        <TableCell>{formatNaira(payment.amountPaid)}</TableCell>
+                        <TableCell>{payment.Shop ? payment.Shop.businessName : 'N/A'}</TableCell>
+                        <TableCell align="right">{formatCurrency(parseFloat(payment.amount || 0))}</TableCell>
                         <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
                       </TableRow>
                     ))
