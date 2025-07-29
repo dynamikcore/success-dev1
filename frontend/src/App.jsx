@@ -107,9 +107,7 @@ function App() {
         v7_relativeSplatPath: true,
       }}
     >
-      <LoadingProvider>
         <AppContent />
-      </LoadingProvider>
     </Router>
   );
 }
