@@ -1,8 +1,14 @@
+/* Import Google Fonts - Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+/* Force Montserrat font globally with highest specificity */
+html, body, #root, * {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 400 !important;
+}
+
 body {
   margin: 0;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -13,31 +19,61 @@ body {
 html {
   height: 100%;
   overflow-y: auto;
-  font-family: 'Montserrat', sans-serif;
+  scroll-behavior: smooth;
 }
 
 #root {
   height: 100%;
   overflow-y: auto;
-  font-family: 'Montserrat', sans-serif;
 }
 
-/* Ensure all elements inherit Montserrat font */
+/* Force Montserrat on ALL elements with maximum specificity */
 * {
   box-sizing: border-box;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 400 !important;
 }
 
-html {
-  scroll-behavior: smooth;
+*::before,
+*::after {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Override Material-UI components */
+.MuiTypography-root,
+.MuiButton-root,
+.MuiInputBase-root,
+.MuiFormLabel-root,
+.MuiTab-root,
+.MuiListItemText-primary,
+.MuiListItemText-secondary,
+.MuiChip-root,
+.MuiTableCell-root,
+.MuiPaper-root,
+.MuiCardContent-root,
+.MuiCardHeader-root {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Ensure all headings use Montserrat */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Ensure all text elements use Montserrat */
+p, span, div, label, input, textarea, select, button {
+  font-family: 'Montserrat', sans-serif !important;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'Montserrat', monospace !important;
 }
 
-/* Override any remaining blue colors */
+pre {
+  font-family: 'Montserrat', monospace !important;
+}
+
+/* Override any remaining blue colors with green */
 .MuiButton-containedPrimary {
   background-color: #008000 !important;
 }
@@ -58,4 +94,10 @@ code {
 
 .MuiListItemIcon-root {
   color: #008000 !important;
+}
+
+/* Ensure AppBar is green */
+.MuiAppBar-root {
+  background-color: #008000 !important;
+  color: #ffffff !important;
 }

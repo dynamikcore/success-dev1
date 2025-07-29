@@ -60,6 +60,8 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#008000', // Green
+      dark: '#006400', // Darker green for hover states
+      light: '#00a000', // Lighter green for lighter backgrounds
     },
     secondary: {
       main: '#FFFFFF', // White
@@ -70,6 +72,19 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: 'Montserrat, sans-serif',
+    h1: { fontFamily: 'Montserrat, sans-serif !important' },
+    h2: { fontFamily: 'Montserrat, sans-serif !important' },
+    h3: { fontFamily: 'Montserrat, sans-serif !important' },
+    h4: { fontFamily: 'Montserrat, sans-serif !important' },
+    h5: { fontFamily: 'Montserrat, sans-serif !important' },
+    h6: { fontFamily: 'Montserrat, sans-serif !important' },
+    body1: { fontFamily: 'Montserrat, sans-serif !important' },
+    body2: { fontFamily: 'Montserrat, sans-serif !important' },
+    button: { fontFamily: 'Montserrat, sans-serif !important' },
+    caption: { fontFamily: 'Montserrat, sans-serif !important' },
+    subtitle1: { fontFamily: 'Montserrat, sans-serif !important' },
+    subtitle2: { fontFamily: 'Montserrat, sans-serif !important' },
+    overline: { fontFamily: 'Montserrat, sans-serif !important' },
   },
   components: {
     MuiAppBar: {
@@ -91,6 +106,83 @@ const theme = createTheme({
       styleOverrides: {
         primary: {
           color: '#008000', // Green text for list items
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+          textTransform: 'none', // Prevent uppercase transformation
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+        h1: { fontFamily: 'Montserrat, sans-serif !important' },
+        h2: { fontFamily: 'Montserrat, sans-serif !important' },
+        h3: { fontFamily: 'Montserrat, sans-serif !important' },
+        h4: { fontFamily: 'Montserrat, sans-serif !important' },
+        h5: { fontFamily: 'Montserrat, sans-serif !important' },
+        h6: { fontFamily: 'Montserrat, sans-serif !important' },
+        body1: { fontFamily: 'Montserrat, sans-serif !important' },
+        body2: { fontFamily: 'Montserrat, sans-serif !important' },
+        button: { fontFamily: 'Montserrat, sans-serif !important' },
+        caption: { fontFamily: 'Montserrat, sans-serif !important' },
+        subtitle1: { fontFamily: 'Montserrat, sans-serif !important' },
+        subtitle2: { fontFamily: 'Montserrat, sans-serif !important' },
+        overline: { fontFamily: 'Montserrat, sans-serif !important' },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+        input: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+      },
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Montserrat, sans-serif !important',
+        },
+      },
+    },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          fontFamily: 'Montserrat, sans-serif !important',
+          color: '#008000',
+        },
+        secondary: {
+          fontFamily: 'Montserrat, sans-serif !important',
         },
       },
     },
