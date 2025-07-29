@@ -210,6 +210,20 @@ export const fetchExpiringPermits = async (days = 30) => {
   }
 };
 
+export const fetchDashboardCharts = async () => {
+  try {
+    const response = await apiRequest('/dashboard/charts');
+    return response;
+  } catch (error) {
+    console.error('Error fetching dashboard charts:', error);
+    return {
+      revenueChart: null,
+      businessTypeChart: null,
+      wardRevenueChart: null
+    };
+  }
+};
+
 // Utility functions
 export const formatNaira = (amount) => {
   return new Intl.NumberFormat('en-NG', {

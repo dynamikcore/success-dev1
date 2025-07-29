@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, Button, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow, Alert } from '@mui/material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement } from 'chart.js';
+import { Pie, Bar, Line } from 'react-chartjs-2';
 import {
   fetchDashboardStats,
   fetchRecentRegistrations,
   fetchRecentPayments,
   fetchExpiringPermits,
+  fetchDashboardCharts,
   formatNaira
 } from '../services/api';
 
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement);
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -23,22 +27,29 @@ const Dashboard = () => {
   const [recentPayments, setRecentPayments] = useState([]);
   const [expiringPermits, setExpiringPermits] = useState([]);
   const [error, setError] = useState('');
+  const [chartData, setChartData] = useState({
+    revenueChart: null,
+    businessTypeChart: null,
+    wardRevenueChart: null
+  });
 
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        const [statsData, registrations, payments, permits] = await Promise.all([
+        const [statsData, registrations, payments, permits, charts] = await Promise.all([
           fetchDashboardStats(),
           fetchRecentRegistrations(5),
           fetchRecentPayments(5),
-          fetchExpiringPermits(30)
+          fetchExpiringPermits(30),
+          fetchDashboardCharts()
         ]);
 
         setStats(statsData);
         setRecentRegistrations(registrations);
         setRecentPayments(payments);
         setExpiringPermits(permits);
+        setChartData(charts);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
         setError('Failed to load dashboard data. Please try again.');
@@ -107,14 +118,30 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Middle Section: Charts (Placeholders) */}
+      {/* Middle Section: Real Charts */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
           <Card raised>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Revenue Trend Chart</Typography>
-              <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
+              <Typography variant="h6" gutterBottom>Revenue Trend (Last 6 Months)</Typography>
+              <Box sx={{ height: 200 }}>
+                {chartData.revenueChart ? (
+                  <Line
+                    data={chartData.revenueChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { position: 'top' },
+                        title: { display: false }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -123,8 +150,23 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" gutterBottom>Shop Distribution by Business Type</Typography>
-              <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
+              <Box sx={{ height: 200 }}>
+                {chartData.businessTypeChart ? (
+                  <Pie
+                    data={chartData.businessTypeChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { position: 'right' }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -133,8 +175,33 @@ const Dashboard = () => {
           <Card raised>
             <CardContent>
               <Typography variant="h6" gutterBottom>Revenue by Ward</Typography>
-              <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-                <Typography variant="body2" color="text.secondary">Chart Placeholder - Integration Pending</Typography>
+              <Box sx={{ height: 200 }}>
+                {chartData.wardRevenueChart ? (
+                  <Bar
+                    data={chartData.wardRevenueChart}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false }
+                      },
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          ticks: {
+                            callback: function(value) {
+                              return '₦' + value.toLocaleString();
+                            }
+                          }
+                        }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <CircularProgress />
+                  </Box>
+                )}
               </Box>
             </CardContent>
           </Card>
