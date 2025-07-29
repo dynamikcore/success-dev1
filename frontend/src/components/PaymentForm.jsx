@@ -175,68 +175,89 @@ const PaymentForm = () => {
     setPaymentSummary(null);
   };
 
-  const handleFinalizePayment = async () => {
-    setPaymentProcessing(true);
+  const onSubmit = async (data) => {
+    setLoading(true);
     setPaymentError('');
-    setPaymentSuccess(false);
+    setPaymentSuccess(null);
+
     try {
       const paymentData = {
-        shopId: paymentSummary.shop.shopId,
-        revenueTypeId: paymentSummary.revenueType.id,
-        assessmentYear: paymentSummary.assessmentYear,
-        amount: paymentSummary.amountPaid, // Use amountPaid as the actual amount
-        amountDue: paymentSummary.totalAmountDue, // Use totalAmountDue as amountDue
-        paymentMethod: paymentSummary.paymentMethod,
-        paymentDate: paymentSummary.paymentDate.format('YYYY-MM-DD'),
-        paymentStatus: 'Completed', // Default status
-        collectedBy: 'Admin User', // Placeholder, ideally from user context
-        notes: paymentSummary.description, // Map description to notes
-        // assessmentYear and receiptRequired are not part of the Payment model
-        // and will be handled separately if needed for other purposes.
-
+        shopId: data.shop.shopId,
+        revenueTypeId: data.revenueType,
+        amount: parseFloat(data.amountPaid),
+        paymentMethod: data.paymentMethod,
+        paymentDate: data.paymentDate.format('YYYY-MM-DD'),
+        collectedBy: 'System Administrator', // TODO: Get from auth context
+        notes: data.description || '',
       };
 
       const result = await createPayment(paymentData);
-      setPaymentSuccess(result);
 
-      // Generate PDF receipt if required
-      if (paymentSummary.receiptRequired && result.payment) {
-        await generatePDFReceipt(result.payment, paymentSummary.shop);
+      if (result.success) {
+        setPaymentSuccess({
+          receiptId: result.payment.receiptNumber,
+          amount: result.payment.amount
+        });
+
+        // Generate and download PDF receipt
+        await generatePDFReceipt(result.payment, data.shop);
+
+        // Reset form
+        reset();
+        setShops([]);
+
+        if (onPaymentSuccess) {
+          onPaymentSuccess(result.payment);
+        }
       }
     } catch (error) {
-      setPaymentError(error.message || 'An unexpected error occurred.');
+      console.error('Payment submission error:', error);
+      setPaymentError(error.message || 'Failed to process payment. Please try again.');
     } finally {
-      setPaymentProcessing(false);
-      setConfirmDialogOpen(false);
+      setLoading(false);
     }
   };
 
   const generatePDFReceipt = async (paymentData, shopData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/payments/generate-receipt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paymentData,
-          shopData,
-        }),
-      });
+      // Import jsPDF dynamically to avoid SSR issues
+      const { jsPDF } = await import('jspdf');
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receipt-${paymentData.receiptNumber || 'payment'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }
+      const doc = new jsPDF();
+
+      // Header
+      doc.setFontSize(18);
+      doc.text('Uvwie Local Government Area', 105, 20, null, null, 'center');
+      doc.setFontSize(14);
+      doc.text('Official Payment Receipt', 105, 30, null, null, 'center');
+      doc.line(20, 35, 190, 35);
+
+      // Receipt details
+      doc.setFontSize(12);
+      doc.text(`Receipt Number: ${paymentData.receiptNumber}`, 20, 50);
+      doc.text(`Date: ${new Date(paymentData.paymentDate).toLocaleDateString()}`, 20, 60);
+      doc.text(`Amount: ₦${parseFloat(paymentData.amount).toLocaleString()}`, 20, 70);
+      doc.text(`Payment Method: ${paymentData.paymentMethod}`, 20, 80);
+
+      // Shop details
+      doc.text('Shop Information:', 20, 100);
+      doc.setFontSize(10);
+      doc.text(`Business Name: ${shopData.businessName}`, 20, 110);
+      doc.text(`Owner: ${shopData.ownerName}`, 20, 120);
+      doc.text(`Address: ${shopData.shopAddress}`, 20, 130);
+      doc.text(`Shop ID: ${shopData.shopId}`, 20, 140);
+
+      // Footer
+      doc.setFontSize(8);
+      doc.text('This is an official receipt from Uvwie Local Government Area', 105, 200, null, null, 'center');
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 210, null, null, 'center');
+
+      // Download the PDF
+      doc.save(`Uvwie-Receipt-${paymentData.receiptNumber}.pdf`);
+
     } catch (error) {
       console.error('Error generating PDF receipt:', error);
+      alert('Payment successful, but receipt generation failed. Please contact support.');
     }
   };
 
