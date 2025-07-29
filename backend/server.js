@@ -4,9 +4,19 @@ const db = require('./models');
 const seedData = require('./seeders/initial-data');
 const { RevenueType } = db;
 
+
+const app = express();
+
+
+// Middleware
+app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(express.json());
+
+// Database connection
+const sequelize = db.sequelize;
+
 // Auto-seed database on startup
 const initializeDatabase = async () => {
-
   try {
     await sequelize.sync(); // This will create tables if they don't exist
     console.log('Database synchronized.');
@@ -24,16 +34,6 @@ const initializeDatabase = async () => {
   }
 };
 
-const app = express();
-
-
-// Middleware
-app.use(cors({ origin: 'http://localhost:5173' }));
-app.use(express.json());
-
-// Database connection
-const sequelize = db.sequelize;
-
 // Import routes
 const shopRoutes = require('./routes/shops');
 const paymentRoutes = require('./routes/payments');
@@ -43,6 +43,8 @@ const revenueTypeRoutes = require('./routes/revenue-types');
 const dashboardRoutes = require('./routes/dashboard');
 const authRoutes = require('./routes/auth');
 
+const seedRoutes = require('./routes/seed');
+
 // Use routes
 app.use('/api/shops', shopRoutes);
 app.use('/api/payments', paymentRoutes);
@@ -51,6 +53,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/revenue-types', revenueTypeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/auth', authRoutes);
+
+app.use('/api/seed', seedRoutes);
 
 // Basic error handling middleware
 app.use((err, req, res, next) => {

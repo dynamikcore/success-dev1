@@ -3,9 +3,14 @@ const API_BASE_URL = 'http://localhost:5000/api';
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
+
+  // Get token from localStorage if available
+  const token = localStorage.getItem('token');
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
     ...options,

@@ -231,17 +231,28 @@ const PermitManagement = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const result = await createPermit(data);
-      if (result.permit) {
+      const permitData = {
+        shopId: data.shopId,
+        permitType: data.permitType, // This is the revenue type ID
+        issueDate: data.issueDate.format('YYYY-MM-DD'),
+        document: data.document
+      };
+
+      const result = await createPermit(permitData);
+      if (result.success && result.permit) {
         alert(`Permit ${result.permit.id} issued successfully!`);
         setOpenForm(false);
         reset();
-        const permitsResponse = await fetchPermits();
+        // Refresh permits list
+        const filters = {};
+        if (filterStatus !== 'All') filters.status = filterStatus;
+        if (filterType !== 'All') filters.permitType = filterType;
+        const permitsResponse = await fetchPermits(filters);
         setPermits(permitsResponse.permits || []);
       }
     } catch (error) {
       console.error('Error issuing permit:', error);
-      alert(error.response?.data?.message || 'Failed to issue permit.');
+      alert(error.message || 'Failed to issue permit.');
     } finally {
       setLoading(false);
     }

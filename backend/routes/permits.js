@@ -64,13 +64,50 @@ router.get('/', async (req, res) => {
 // POST /api/permits - Create new permit
 router.post('/', async (req, res) => {
   try {
-    const newPermit = await Permit.create(req.body);
+    const { shopId, permitType, issueDate, document } = req.body;
+
+    // Get the revenue type to extract fee and name
+    const { RevenueType } = db;
+    const revenueType = await RevenueType.findByPk(permitType);
+
+    if (!revenueType) {
+      return res.status(400).json({ message: 'Invalid permit type selected' });
+    }
+
+    // Calculate expiry date (1 year from issue date)
+    const expiryDate = new Date(issueDate);
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
+    const permitData = {
+      shopId,
+      permitType: revenueType.typeName, // Use the actual type name
+      permitFee: revenueType.baseAmount,
+      issueDate: new Date(issueDate),
+      expiryDate,
+      issuedBy: 'System Administrator', // TODO: Get from authenticated user
+      permitStatus: 'Active',
+      documentPath: document ? `uploads/permits/${Date.now()}-${document.name}` : null
+    };
+
+    const newPermit = await Permit.create(permitData);
     const permit = await Permit.findByPk(newPermit.permitId, {
       include: [
         { model: Shop, attributes: ['businessName', 'ownerName'] }
       ]
     });
-    res.status(201).json(permit);
+
+    res.status(201).json({
+      success: true,
+      permit: {
+        id: permit.permitId,
+        shopName: permit.Shop ? permit.Shop.businessName : 'Unknown',
+        permitType: permit.permitType,
+        issueDate: permit.issueDate.toISOString().split('T')[0],
+        expiryDate: permit.expiryDate.toISOString().split('T')[0],
+        status: permit.permitStatus,
+        fee: parseFloat(permit.permitFee)
+      }
+    });
   } catch (error) {
     console.error('Error creating permit:', error);
     res.status(500).json({ message: 'Error creating permit', error: error.message });
