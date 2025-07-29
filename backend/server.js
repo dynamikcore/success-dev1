@@ -18,6 +18,7 @@ const paymentRoutes = require('./routes/payments');
 const permitRoutes = require('./routes/permits');
 const reportRoutes = require('./routes/reports');
 const revenueTypeRoutes = require('./routes/revenue-types');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Use routes
 app.use('/api/shops', shopRoutes);
@@ -25,6 +26,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/permits', permitRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/revenue-types', revenueTypeRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Basic error handling middleware
 app.use((err, req, res, next) => {

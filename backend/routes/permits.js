@@ -77,6 +77,42 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/permits/expiring - Get permits expiring within specified days
+router.get('/expiring', async (req, res) => {
+  const { days = 30 } = req.query;
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + parseInt(days));
+
+  try {
+    const expiringPermits = await Permit.findAll({
+      where: {
+        expiryDate: {
+          [Op.between]: [new Date(), futureDate],
+        },
+      },
+      include: [
+        { model: Shop, attributes: ['businessName', 'ownerName'] }
+      ],
+      order: [['expiryDate', 'ASC']]
+    });
+
+    const transformedPermits = expiringPermits.map(permit => ({
+      id: permit.permitId,
+      shopName: permit.Shop ? permit.Shop.businessName : 'Unknown',
+      permitType: permit.permitType,
+      expiryDate: permit.expiryDate.toISOString().split('T')[0],
+      daysUntilExpiry: Math.ceil((new Date(permit.expiryDate) - new Date()) / (1000 * 60 * 60 * 24))
+    }));
+
+    res.json({
+      permits: transformedPermits
+    });
+  } catch (error) {
+    console.error('Error fetching expiring permits:', error);
+    res.status(500).json({ message: 'Error fetching expiring permits', error: error.message });
+  }
+});
+
 // GET /api/permits/:id - Get single permit
 router.get('/:id', async (req, res) => {
   try {
