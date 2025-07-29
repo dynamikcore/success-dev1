@@ -234,7 +234,7 @@ const PermitManagement = () => {
       const permitData = {
         shopId: data.shopId,
         permitType: data.permitType, // This is the revenue type ID
-        issueDate: data.issueDate.format('YYYY-MM-DD'),
+        issueDate: dayjs(data.issueDate).format('YYYY-MM-DD'), // Ensure it's a dayjs object
         document: data.document
       };
 
