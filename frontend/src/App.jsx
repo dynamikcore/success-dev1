@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -45,6 +45,7 @@ import Reports from './pages/Reports';
 import PermitManagement from './pages/PermitManagement';
 import ShopManagement from './pages/ShopManagement';
 import Login from './components/login';
+
 
 const Payments = () => <PaymentProcessing />;
 const PermitsComponent = () => <PermitManagement />;
