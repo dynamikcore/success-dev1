@@ -105,6 +105,23 @@ router.get('/search', async (req, res) => {
     }
 });
 
+// GET /api/shops/recent - Get recent shop registrations
+router.get('/recent', async (req, res) => {
+    const { limit = 5 } = req.query;
+    try {
+        const shops = await Shop.findAll({
+            limit: parseInt(limit),
+            order: [['createdAt', 'DESC']],
+            attributes: ['shopId', 'businessName', 'businessType', 'createdAt'],
+            where: { isActive: true }
+        });
+        res.json({ shops });
+    } catch (error) {
+        console.error('Error fetching recent shops:', error);
+        res.status(500).json({ message: 'Error fetching recent shops', error: error.message });
+    }
+});
+
 // POST /api/shops - Register new shop
 router.post('/', validateShopInput, async (req, res) => {
     try {

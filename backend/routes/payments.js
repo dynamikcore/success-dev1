@@ -42,6 +42,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/payments/recent - Get recent payments
+router.get('/recent', async (req, res) => {
+  const { limit = 5 } = req.query;
+  try {
+    const payments = await Payment.findAll({
+      limit: parseInt(limit),
+      order: [['paymentDate', 'DESC']],
+      include: [
+        { model: Shop, attributes: ['businessName', 'ownerName'] },
+        { model: RevenueType, attributes: ['typeName'] }
+      ]
+    });
+    res.json({ payments });
+  } catch (error) {
+    console.error('Error fetching recent payments:', error);
+    res.status(500).json({ message: 'Error fetching recent payments', error: error.message });
+  }
+});
+
 // POST /api/payments - Create new payment
 router.post('/', async (req, res) => {
   try {
