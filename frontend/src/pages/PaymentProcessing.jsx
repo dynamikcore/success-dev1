@@ -172,10 +172,10 @@ const PaymentProcessing = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card raised>
               <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                <Typography component="div" variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Today's Collection
                 </Typography>
-                <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography component="div" variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {formatCurrency(stats.todayCollection)}
                 </Typography>
               </CardContent>
@@ -184,10 +184,10 @@ const PaymentProcessing = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card raised>
               <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                <Typography component="div" variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   This Month's Total
                 </Typography>
-                <Typography variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                <Typography component="div" variant="h5" color="primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                   {formatCurrency(stats.thisMonthTotal)}
                 </Typography>
               </CardContent>
@@ -196,7 +196,7 @@ const PaymentProcessing = () => {
           <Grid item xs={12} sm={6} md={3}>
             <Card raised>
               <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                <Typography component="div" variant="h6" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Outstanding Amount
                 </Typography>
                 <Typography variant="h5" color="error" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>

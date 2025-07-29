@@ -491,13 +491,13 @@ const PaymentForm = () => {
           <DialogTitle>Confirm Payment</DialogTitle>
           <DialogContent>
             {paymentSummary && (
-              <DialogContentText>
-                <Typography>Shop: {paymentSummary.shop?.businessName}</Typography>
-                <Typography>Revenue Type: {paymentSummary.revenueType?.name}</Typography>
-                <Typography>Assessment Year: {paymentSummary.assessmentYear}</Typography>
-                <Typography>Amount Due: ₦{paymentSummary.amountDue.toLocaleString()}</Typography>
-                {paymentSummary.penalty > 0 && <Typography color="error">Penalty: ₦{paymentSummary.penalty.toLocaleString()}</Typography>}
-                <Typography>Total Amount Due: ₦{paymentSummary.totalAmountDue.toLocaleString()}</Typography>
+              <DialogContentText component="div">
+                <Typography component="span">Shop: {paymentSummary.shop?.businessName}</Typography><br/>
+                <Typography component="span">Revenue Type: {paymentSummary.revenueType?.name}</Typography><br/>
+                <Typography component="span">Assessment Year: {paymentSummary.assessmentYear}</Typography><br/>
+                <Typography component="span">Amount Due: ₦{paymentSummary.amountDue.toLocaleString()}</Typography><br/>
+                {paymentSummary.penalty > 0 && <Typography component="span" color="error">Penalty: ₦{paymentSummary.penalty.toLocaleString()}</Typography>}<br/>
+                <Typography component="span">Total Amount Due: ₦{paymentSummary.totalAmountDue.toLocaleString()}</Typography>
                 <Typography>Amount Paid: ₦{paymentSummary.amountPaid.toLocaleString()}</Typography>
                 <Typography>Payment Method: {paymentSummary.paymentMethod}</Typography>
                 <Typography>Payment Date: {dayjs(paymentSummary.paymentDate).format('YYYY-MM-DD')}</Typography>
